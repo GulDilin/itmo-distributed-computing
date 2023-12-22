@@ -10,6 +10,7 @@
 #include "worker.h"
 #include "channels.h"
 #include "debug.h"
+#include "args.h"
 
 void create_child_process(int proc_n, pid_t parent_pid, int local_id, executor * executor, channel ** channels) {
     // fork only main parent process
@@ -74,19 +75,24 @@ void cleanup(int proc_n, channel ** channels, executor * executor) {
     free(channels);
 }
 
-int main() {
+int main(int argc, char **argv) {
     debug_print("Start %d\n", 0);
-    int proc_n = 4;
+
+    arguments arguments;
+    debug_print("Parse args %d\n", argc);
+    args_parse(argc, argv, &arguments);
+    debug_print("Parsed args %d. processes: %d\n", argc, arguments.proc_n);
+
     channel ** channels;
-    init(proc_n, &channels);
+    init(arguments.proc_n, &channels);
 
     executor executor;
     pid_t parent_pid = getpid();
-    create_processes(proc_n, parent_pid, &executor, channels);
+    create_processes(arguments.proc_n, parent_pid, &executor, channels);
 
     debug_print("Executor pid=%d parent=%d local_id=%d\n", executor.pid, executor.parent_pid, executor.local_id);
     run_worker(&executor);
 
-    cleanup(proc_n, channels, &executor);
+    cleanup(arguments.proc_n, channels, &executor);
     return 0;
 }
