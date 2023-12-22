@@ -9,7 +9,7 @@ tar:
 	mkdir -p ./build/pa1
 	cp *.c ./build/pa1
 	cp *.h ./build/pa1
-	tar cfvz ./build/pa1.tar.gz ./build/pa1
+	cd build && tar cfvz ./pa1.tar.gz ./pa1
 
 clean:
 	rm -rf ./build
