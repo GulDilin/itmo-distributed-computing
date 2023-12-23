@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 // Include pre defined libraries for lab implementation
@@ -73,7 +74,11 @@ void init(int proc_n, channel ***channels) {
 }
 
 void cleanup(int proc_n, channel **channels, executor *executor) {
-    if (executor->local_id == PARENT_ID) { close_channels(proc_n, channels); }
+    if (executor->local_id == PARENT_ID) {
+        while (wait(NULL) > 0)
+            ;  // wait all child processes
+        close_channels(proc_n, channels);
+    }
     free(executor->ch_read);
     free(executor->ch_write);
     for (int i = 0; i < proc_n; ++i) free(channels[i]);
