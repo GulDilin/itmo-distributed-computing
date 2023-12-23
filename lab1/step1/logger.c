@@ -14,7 +14,7 @@
 static int events_log_fd = 0;
 static int pipes_log_fd = 0;
 
-int        open_log_f(const char *fname) {
+int open_log_f(const char *fname) {
     return open(fname, O_WRONLY | O_APPEND | O_CREAT, S_IWUSR | S_IRUSR | S_IWGRP | S_IRGRP);
 }
 

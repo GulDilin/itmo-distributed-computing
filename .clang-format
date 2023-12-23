@@ -10,7 +10,7 @@ AlignConsecutiveMacros:
   AcrossComments: false
 AlignConsecutiveDeclarations:
   Enabled: true
-  AcrossEmptyLines: true
+  AcrossEmptyLines: false
   AcrossComments: false
 AlignConsecutiveShortCaseStatements:
   Enabled: true
