@@ -12,7 +12,7 @@
 
 /* Used by main to communicate with parse_opt. */
 typedef struct {
-  uint8_t proc_n;
+    uint8_t proc_n;
 } arguments;
 
 /**
@@ -22,6 +22,6 @@ typedef struct {
  * @param      argv       The arguments array
  * @param      arguments  The arguments result object pointer
  */
-void args_parse(int argc, char **argv, arguments * arguments);
+void args_parse(int argc, char **argv, arguments *arguments);
 
-#endif // __ITMO_DISTRIBUTED_CLASS_ARGS__H
+#endif  // __ITMO_DISTRIBUTED_CLASS_ARGS__H

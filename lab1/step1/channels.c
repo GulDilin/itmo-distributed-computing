@@ -1,15 +1,14 @@
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <sys/types.h>
-#include <fcntl.h>
+#include <unistd.h>
 // #include <time.h>
 
-#include "ipc.h"
 #include "channels.h"
-#include "logger.h"
 #include "debug.h"
-
+#include "ipc.h"
+#include "logger.h"
 
 int init_channel(channel *channel) {
     int fd[2];
@@ -29,11 +28,13 @@ int init_channel(channel *channel) {
 }
 
 int open_channel(channel **channels, local_id from, local_id dst) {
-    channel * ch = &channels[from][dst];
-    ch -> read_h = 0;
-    ch -> write_h = 0;
+    channel *ch = &channels[from][dst];
+    ch->read_h = 0;
+    ch->write_h = 0;
     int rc = init_channel(ch);
-    debug_print("open_channel %d -> %d [rc=%d] [ %2d -> %2d ]\n", from, dst, rc, ch -> read_h, ch -> write_h);
+    debug_print(
+        "open_channel %d -> %d [rc=%d] [ %2d -> %2d ]\n", from, dst, rc, ch->read_h, ch->write_h
+    );
     return rc;
 }
 
@@ -70,10 +71,10 @@ int close_channels(int8_t proc_n, channel **channels) {
 }
 
 int close_unused_channels(int8_t proc_n, local_id local_id, channel **channels) {
-    // closed unused pipes. Like in example https://www.man7.org/linux/man-pages/man2/pipe.2.html#EXAMPLES
-    // proc with local_id uses only
-    // local_id -> other_id write side
-    // other_id -> local_id read size
+    // closed unused pipes. Like in example
+    // https://www.man7.org/linux/man-pages/man2/pipe.2.html#EXAMPLES proc with
+    // local_id uses only local_id -> other_id write side other_id -> local_id
+    // read size
     for (int other_id = 0; other_id < proc_n; ++other_id) {
         if (other_id == local_id) continue;
         for (int other_id_2 = 0; other_id_2 < proc_n; ++other_id_2) {
@@ -108,12 +109,12 @@ void set_executor_channels(int8_t proc_n, executor *executor, channel **channels
         // read handler from channel local_id -> other_id
         executor->ch_write[other_id] = channels[local_id][other_id].write_h;
         debug_print(
-            "[local_id=%d] ch w %d -> %d: %d\n",
-            local_id, local_id, other_id, channels[local_id][other_id].write_h
+            "[local_id=%d] ch w %d -> %d: %d\n", local_id, local_id, other_id,
+            channels[local_id][other_id].write_h
         );
         debug_print(
-            "[local_id=%d] ch r %d -> %d: %d\n",
-            local_id, other_id, local_id, channels[other_id][local_id].read_h
+            "[local_id=%d] ch r %d -> %d: %d\n", local_id, other_id, local_id,
+            channels[other_id][local_id].read_h
         );
     }
 }

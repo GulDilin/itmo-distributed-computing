@@ -30,4 +30,4 @@ void parent_worker(executor *self);
  */
 void run_worker(executor *self);
 
-#endif // __ITMO_DISTRIBUTED_CLASS_WORKER__H
+#endif  // __ITMO_DISTRIBUTED_CLASS_WORKER__H

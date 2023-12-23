@@ -1,20 +1,21 @@
+#include "logger.h"
+
+#include <fcntl.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include<fcntl.h>
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-#include "logger.h"
 #include "common.h"
 #include "debug.h"
 
 static int events_log_fd = 0;
 static int pipes_log_fd = 0;
 
-int open_log_f(const char *fname) {
-    return open(fname, O_WRONLY | O_APPEND | O_CREAT, S_IWUSR | S_IRUSR | S_IWGRP | S_IRGRP );
+int        open_log_f(const char *fname) {
+    return open(fname, O_WRONLY | O_APPEND | O_CREAT, S_IWUSR | S_IRUSR | S_IWGRP | S_IRGRP);
 }
 
 int open_pipes_log_f() {
@@ -49,7 +50,7 @@ int log_file_msg(int fd, const char *fmt, va_list args) {
     if (bufsz < 1) return -1;
     bufsz += 1;
 
-    char * buf;
+    char *buf;
     if ((buf = malloc(bufsz)) == NULL) return -1;
     vsnprintf(buf, bufsz, fmt, args_copy);
     va_end(args_copy);
@@ -70,9 +71,6 @@ int log_msg(int fd, const char *fmt, va_list args) {
 int log_pipes_msg(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
-    // int fd = open_pipes_log_f();
-    // log_msg(fd, fmt, args);
-    // close(fd);
     int rc = log_msg(pipes_log_fd, fmt, args);
     va_end(args);
     return rc;
@@ -81,9 +79,6 @@ int log_pipes_msg(const char *fmt, ...) {
 int log_events_msg(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
-    // int fd = open_events_log_f();
-    // log_msg(fd, fmt, args);
-    // close(fd);
     int rc = log_msg(events_log_fd, fmt, args);
     va_end(args);
     return rc;
@@ -96,4 +91,3 @@ int log_channel_opened(int from, int dst) {
 int log_channel_closed(int from, int dst) {
     return log_pipes_msg(log_channel_closed_fmt, from, dst);
 }
-

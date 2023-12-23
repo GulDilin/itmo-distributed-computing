@@ -1,11 +1,10 @@
 #include <stdio.h>
 
 #include "communicator.h"
-#include "ipc.h"
-#include "pa1.h"
-#include "logger.h"
 #include "debug.h"
-
+#include "ipc.h"
+#include "logger.h"
+#include "pa1.h"
 
 void child_start(executor *self) {
     log_events_msg(log_started_fmt, self->local_id, self->pid, self->parent_pid);
@@ -40,10 +39,9 @@ void parent_worker(executor *self) {
 
 void run_worker(executor *self) {
     debug_print(
-        "Run worker pid=%d parent=%d local_id=%d\n",
-        self->pid, self->parent_pid, self->local_id
+        "Run worker pid=%d parent=%d local_id=%d\n", self->pid, self->parent_pid, self->local_id
     );
 
-    if (self -> local_id == PARENT_ID) parent_worker(self);
+    if (self->local_id == PARENT_ID) parent_worker(self);
     else child_worker(self);
 }

@@ -7,8 +7,8 @@
 #ifndef __ITMO_DISTRIBUTED_CLASS_COMMUNICATOR__H
 #define __ITMO_DISTRIBUTED_CLASS_COMMUNICATOR__H
 
-#include "ipc.h"
 #include "channels.h"
+#include "ipc.h"
 
 /**
  * @brief      Construct a message to msg pointer;
@@ -29,7 +29,7 @@ int construct_msg(Message *msg, MessageType type, const char *msg_fmt, ...);
  *
  * @return     0 on success, any non-zero value on error
  */
-int send_started_msg_multicast(executor * self);
+int send_started_msg_multicast(executor *self);
 
 /**
  * @brief      Sends a done message multicast.
@@ -38,7 +38,7 @@ int send_started_msg_multicast(executor * self);
  *
  * @return     0 on success, any non-zero value on error
  */
-int send_done_msg_multicast(executor * self);
+int send_done_msg_multicast(executor *self);
 
 /**
  * @brief      Determines if message recieved from.
@@ -49,7 +49,7 @@ int send_done_msg_multicast(executor * self);
  *
  * @return     1 if recieved message from, 0 otherwise.
  */
-int is_recieved_msg_from(executor * self, uint16_t recieved, local_id from);
+int is_recieved_msg_from(executor *self, uint16_t recieved, local_id from);
 
 /**
  * @brief      Determines if recieved from all children.
@@ -59,7 +59,7 @@ int is_recieved_msg_from(executor * self, uint16_t recieved, local_id from);
  *
  * @return     1 if recieved from all children, 0 otherwise.
  */
-int is_recieved_all_child(executor * self, uint16_t recieved);
+int is_recieved_all_child(executor *self, uint16_t recieved);
 
 /**
  * @brief      Mark mask bit connected with local_id process as recieved.
@@ -67,7 +67,7 @@ int is_recieved_all_child(executor * self, uint16_t recieved);
  * @param      recieved  The recieved mask
  * @param[in]  from  The from process local id
  */
-void mark_recieved(uint16_t * recieved, local_id from);
+void mark_recieved(uint16_t *recieved, local_id from);
 
 /**
  * @brief      Wait for all messages with specified type recieved from children
@@ -77,6 +77,6 @@ void mark_recieved(uint16_t * recieved, local_id from);
  *
  * @return     0 on success, any non-zero value on error
  */
-int wait_receive_all_child_msg_by_type(executor * self, MessageType type);
+int wait_receive_all_child_msg_by_type(executor *self, MessageType type);
 
-#endif // __ITMO_DISTRIBUTED_CLASS_COMMUNICATOR__H
+#endif  // __ITMO_DISTRIBUTED_CLASS_COMMUNICATOR__H

@@ -5,31 +5,32 @@
 
 int usleep(__useconds_t useconds);
 
-#include "ipc.h"
 #include "channels.h"
 #include "debug.h"
+#include "ipc.h"
 
-size_t compute_msg_size(const Message * msg) {
+size_t compute_msg_size(const Message *msg) {
     return sizeof(MessageHeader) + msg->s_header.s_payload_len;
 }
 
-int send(void * self, local_id dst, const Message * msg) {
+int send(void *self, local_id dst, const Message *msg) {
     executor *executor = self;
-    uint16_t msg_size = compute_msg_size(msg);
+    uint16_t  msg_size = compute_msg_size(msg);
     channel_h channel_h = get_channel_write_h(executor, dst);
-    int bytes = write(channel_h, msg, msg_size);
+    int       bytes = write(channel_h, msg, msg_size);
     debug_print(
-        "[local_id=%1d] [pid=%5d] send %d -> %d [channel_h=%d] [msg_size=%d] bytes=%d\n",
+        "[local_id=%1d] [pid=%5d] send %d -> %d [channel_h=%d] "
+        "[msg_size=%d] bytes=%d\n",
         executor->local_id, executor->pid, executor->local_id, dst, channel_h, msg_size, bytes
     );
     return bytes > 0 ? 0 : 1;
 }
 
-int send_multicast(void * self, const Message * msg) {
+int send_multicast(void *self, const Message *msg) {
     executor *executor = self;
     debug_print(
-        "[local_id=%1d] [pid=%5d] send_multicast.  proc_n: %d \n",
-        executor->local_id, executor->pid, executor->proc_n
+        "[local_id=%1d] [pid=%5d] send_multicast.  proc_n: %d \n", executor->local_id,
+        executor->pid, executor->proc_n
     );
     int rc = 0;
     for (int dst = 0; dst < executor->proc_n; ++dst) {
@@ -40,7 +41,7 @@ int send_multicast(void * self, const Message * msg) {
     return rc;
 }
 
-int receive(void * self, local_id from, Message * msg) {
+int receive(void *self, local_id from, Message *msg) {
     executor *executor = self;
     channel_h channel_h = get_channel_read_h(executor, from);
     if (read(channel_h, &(msg->s_header), sizeof(MessageHeader)) == -1) return -1;
@@ -48,10 +49,10 @@ int receive(void * self, local_id from, Message * msg) {
     return 0;
 }
 
-int receive_any(void * self, Message * msg) {
+int receive_any(void *self, Message *msg) {
     executor *executor = self;
-    int recieved_n = 0;
-    local_id local_id = 0;
+    int       recieved_n = 0;
+    local_id  local_id = 0;
     while (recieved_n == 0) {
         if (executor->proc_n - 1) usleep(SLEEP_RECEIVE_USEC);
         local_id = (local_id + 1) % executor->proc_n;

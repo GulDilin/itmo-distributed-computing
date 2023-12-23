@@ -9,11 +9,9 @@
 
 #include <stdarg.h>
 
-static const char * const log_channel_opened_fmt =
-    "Channel opened (%5d -> %5d)\n";
+static const char *const log_channel_opened_fmt = "Channel opened (%5d -> %5d)\n";
 
-static const char * const log_channel_closed_fmt =
-    "Channel closed (%5d -> %5d)\n";
+static const char *const log_channel_closed_fmt = "Channel closed (%5d -> %5d)\n";
 
 /**
  * @brief      Logs a channel opened message.
@@ -42,7 +40,7 @@ int log_channel_closed(int from, int dst);
  *
  * @return     0 on success, any non-zero value on error
  */
-int log_started_msg(void * self);
+int log_started_msg(void *self);
 
 /**
  * @brief      Opens a log file handler.
@@ -108,4 +106,4 @@ int log_pipes_msg(const char *fmt, ...);
  */
 int log_events_msg(const char *fmt, ...);
 
-#endif // __ITMO_DISTRIBUTED_CLASS_LOGGER__H
+#endif  // __ITMO_DISTRIBUTED_CLASS_LOGGER__H

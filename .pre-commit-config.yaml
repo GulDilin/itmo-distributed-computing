@@ -1,0 +1,32 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        name: Run trailing-whitespace
+      - id: end-of-file-fixer
+        name: Run end-of-file-fixer
+      - id: check-yaml
+        name: Run check-yaml
+      - id: check-added-large-files
+        name: Run check-added-large-files
+
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.5.4
+    hooks:
+      - id: forbid-crlf
+        name: Forbid CRLF line endings
+        exclude: \.(txt|lock)$
+      - id: remove-crlf
+        name: Remove CRLF line endings
+        exclude: \.(txt|lock)$
+
+  - repo: https://github.com/executablebooks/mdformat
+    rev: 0.7.17
+    hooks:
+      - id: mdformat
+
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v17.0.6
+    hooks:
+      - id: clang-format

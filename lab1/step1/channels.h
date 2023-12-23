@@ -9,28 +9,28 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <unistd.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #include "ipc.h"
 
 typedef int channel_h;
 
 typedef struct {
-    channel_h read_h;     ///< read handler for pipe
-    channel_h write_h;    ///< write handler for pipe
+    channel_h read_h;   ///< read handler for pipe
+    channel_h write_h;  ///< write handler for pipe
 } channel;
 
 typedef struct {
-    local_id local_id;          ///< Local process id (usually index of created process)
-    channel_h *ch_read;         ///< Array of reading pipe handlers
-    channel_h *ch_write;        ///< Array of writing pipe handlers
-    int8_t proc_n;              ///< Number of processes
-    pid_t parent_pid;           ///< Parend process id
-    pid_t pid;                  ///< Executor process id
+    local_id   local_id;       ///< Local process id (usually index of created process)
+    channel_h *ch_read;        ///< Array of reading pipe handlers
+    channel_h *ch_write;       ///< Array of writing pipe handlers
+    int8_t     proc_n;         ///< Number of processes
+    pid_t      parent_pid;     ///< Parend process id
+    pid_t      pid;            ///< Executor process id
 } executor;
 
-#define SLEEP_RECEIVE_USEC 10 // 10 usec between recieve any msg
+#define SLEEP_RECEIVE_USEC 10  // 10 usec between recieve any msg
 
 // int nanosleep(const struct timespec *req, struct timespec * rem);
 
@@ -48,7 +48,7 @@ void sleep_us(unsigned long microseconds);
  *
  * @return     0 on success, any non-zero value on error
  */
-int init_channel(channel * channel);
+int init_channel(channel *channel);
 
 /**
  * @brief      Opens a channel between processes.
@@ -127,7 +127,6 @@ channel_h get_channel_write_h(executor *self, local_id dst);
  */
 int close_channel(channel **channels, local_id from, local_id dst);
 
-
 /**
  * @brief      Closes a channela used by executor with local id.
  *
@@ -139,4 +138,4 @@ int close_channel(channel **channels, local_id from, local_id dst);
  */
 int close_channels(int8_t proc_n, channel **channels);
 
-#endif // __ITMO_DISTRIBUTED_CLASS_CHANNELS__H
+#endif  // __ITMO_DISTRIBUTED_CLASS_CHANNELS__H
