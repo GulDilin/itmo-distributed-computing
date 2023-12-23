@@ -75,13 +75,14 @@ int close_unused_channels(int8_t proc_n, local_id local_id, channel **channels) 
     // local_id -> other_id write side
     // other_id -> local_id read size
     for (int other_id = 0; other_id < proc_n; ++other_id) {
+        if (other_id == local_id) continue;
         for (int other_id_2 = 0; other_id_2 < proc_n; ++other_id_2) {
             // in proc with local_id we do not use channels from other procs
             if (other_id == other_id_2) continue;
+            if (local_id == other_id_2) continue;
             close_channel(channels, other_id, other_id_2);
             close_channel(channels, other_id_2, other_id);
         }
-        if (other_id == local_id) continue;
         // close unused read end from local_id -> other_id
         close(channels[local_id][other_id].read_h);
         // close unused write end from other_id -> local_id

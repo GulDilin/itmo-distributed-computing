@@ -68,6 +68,16 @@ int open_pipes_log_f();
 int open_events_log_f();
 
 /**
+ * @brief      Closes a pipes log file.
+ */
+void close_pipes_log_f();
+
+/**
+ * @brief      Closes an events log file.
+ */
+void close_events_log_f();
+
+/**
  * @brief      Logs a message to a file.
  *
  * @param[in]  handler    The file handler

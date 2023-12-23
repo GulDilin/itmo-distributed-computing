@@ -11,10 +11,15 @@
 #include "channels.h"
 #include "debug.h"
 #include "args.h"
+#include "logger.h"
+
+int is_parent(pid_t parent_pid) {
+    return getpid() == parent_pid;
+}
 
 void create_child_process(int proc_n, pid_t parent_pid, int local_id, executor * executor, channel ** channels) {
     // fork only main parent process
-    if (getpid() != parent_pid) return;
+    if (!is_parent(parent_pid)) return;
     pid_t forked_pid = fork();
     if (forked_pid == 0) {
         // forked process
@@ -27,10 +32,10 @@ void create_child_process(int proc_n, pid_t parent_pid, int local_id, executor *
         executor -> pid = pid;
 
         set_executor_channels(proc_n, executor, channels);
+        close_unused_channels(proc_n, local_id, channels);
         debug_print("Hello from Proc pid=%d parent=%d local_id=%d\n", pid, p_pid, local_id);
     }
 }
-
 
 void create_processes(int proc_n, pid_t parent_pid, executor * executor, channel ** channels) {
     debug_print("Hello from Proc pid=%d parent=%d local_id=%d\n", getpid(), getppid(), PARENT_ID);
@@ -63,6 +68,8 @@ void init(int proc_n, channel *** channels) {
         perror("Failed to open channels");
         exit(1);
     };
+    open_pipes_log_f();
+    open_events_log_f();
 }
 
 void cleanup(int proc_n, channel ** channels, executor * executor) {
@@ -73,6 +80,8 @@ void cleanup(int proc_n, channel ** channels, executor * executor) {
     free(executor->ch_write);
     for (int i = 0; i < proc_n; ++i) free(channels[i]);
     free(channels);
+    close_pipes_log_f();
+    close_events_log_f();
 }
 
 int main(int argc, char **argv) {
@@ -89,8 +98,12 @@ int main(int argc, char **argv) {
     executor executor;
     pid_t parent_pid = getpid();
     create_processes(arguments.proc_n, parent_pid, &executor, channels);
+    if (is_parent(parent_pid)) close_unused_channels(arguments.proc_n, PARENT_ID, channels);
 
-    debug_print("Executor pid=%d parent=%d local_id=%d\n", executor.pid, executor.parent_pid, executor.local_id);
+    debug_print(
+        "Executor pid=%d parent=%d local_id=%d\n",
+        executor.pid, executor.parent_pid, executor.local_id
+    );
     run_worker(&executor);
 
     cleanup(arguments.proc_n, channels, &executor);

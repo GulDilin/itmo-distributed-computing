@@ -55,7 +55,7 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
         argp_usage (state);
         return 1;
       }
-      arguments->proc_n = (uint8_t) proc_n;
+      arguments->proc_n = (uint8_t) proc_n + 1;
       break;
     }
 
