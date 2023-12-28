@@ -19,19 +19,15 @@ int send(void *self, local_id dst, const Message *msg) {
     channel_h channel_h = get_channel_write_h(executor, dst);
     int       bytes = write(channel_h, msg, msg_size);
     debug_print(
-        "[local_id=%1d] [pid=%5d] send %d -> %d [channel_h=%d] "
-        "[msg_size=%d] bytes=%d\n",
-        executor->local_id, executor->pid, executor->local_id, dst, channel_h, msg_size, bytes
+        debug_ipc_send_fmt, executor->local_id, executor->pid, executor->local_id, dst, channel_h,
+        msg_size, bytes
     );
     return bytes > 0 ? 0 : 1;
 }
 
 int send_multicast(void *self, const Message *msg) {
     executor *executor = self;
-    debug_print(
-        "[local_id=%1d] [pid=%5d] send_multicast.  proc_n: %d \n", executor->local_id,
-        executor->pid, executor->proc_n
-    );
+    debug_print(debug_ipc_send_multicast_fmt, executor->local_id, executor->pid, executor->proc_n);
     int rc = 0;
     for (int dst = 0; dst < executor->proc_n; ++dst) {
         if (executor->local_id == dst) continue;
@@ -51,14 +47,14 @@ int receive(void *self, local_id from, Message *msg) {
 
 int receive_any(void *self, Message *msg) {
     executor *executor = self;
-    int       recieved_n = 0;
+    int       received_n = 0;
     local_id  local_id = 0;
-    while (recieved_n == 0) {
+    while (received_n == 0) {
         if (executor->proc_n - 1) usleep(SLEEP_RECEIVE_USEC);
         local_id = (local_id + 1) % executor->proc_n;
         if (executor->local_id == local_id) continue;
         int rc = receive(executor, local_id, msg);
-        recieved_n += (rc == 0);
+        received_n += (rc == 0);
     }
     return 0;
 }

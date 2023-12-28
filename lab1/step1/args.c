@@ -22,6 +22,11 @@ static struct argp_option options[] = {
     {0}
 };
 
+static const char *argp_err_key_nan_fmt = "-%c is not a number. See --help for more information";
+static const char *arg_err_key_required_fmt = "-%c is required. See --help for more information";
+static const char *arg_err_key_range_fmt
+    = "-%c value is not in correct range. See --help for more information";
+
 /**
  * @brief      Parse a single option.
  *
@@ -40,25 +45,33 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         case 'p': {
             if (arg == NULL) {
                 // not passed
+                argp_failure(state, 1, 0, arg_err_key_required_fmt, key);
                 argp_usage(state);
-                return 1;
+                return ARGP_ERR_UNKNOWN;
             }
 
             char    *endptr = NULL;
             long int proc_n = strtol(arg, &endptr, 10);
             if (*endptr != 0) {
                 // non-number letters after number
-                argp_usage(state);
-                return 1;
+                argp_failure(state, 1, 0, argp_err_key_nan_fmt, key);
+                return ARGP_ERR_UNKNOWN;
             }
             if (proc_n < 2 || proc_n > 15) {
                 // not in range
-                argp_usage(state);
-                return 1;
+                argp_failure(state, 1, 0, arg_err_key_range_fmt, key);
+                return ARGP_ERR_UNKNOWN;
             }
             arguments->proc_n = (uint8_t)proc_n + 1;
             break;
         }
+
+        case ARGP_KEY_END:
+            // check if not enough args
+            if (arguments->proc_n == 0) {
+                argp_failure(state, 1, 0, arg_err_key_required_fmt, 'p');
+                exit(ARGP_ERR_UNKNOWN);
+            }
 
         default:
             return ARGP_ERR_UNKNOWN;
@@ -69,6 +82,11 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 /* Our argp parser. */
 static struct argp argp = {options, parse_opt, args_doc, doc};
 
+void init_defaults(arguments *arguments) {
+    arguments->proc_n = 0;
+}
+
 void args_parse(int argc, char **argv, arguments *arguments) {
+    init_defaults(arguments);
     argp_parse(&argp, argc, argv, 0, 0, arguments);
 }

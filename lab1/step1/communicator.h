@@ -41,36 +41,36 @@ int send_started_msg_multicast(executor *self);
 int send_done_msg_multicast(executor *self);
 
 /**
- * @brief      Determines if message recieved from.
+ * @brief      Determines if message received from.
  *
  * @param      self      The executor process
- * @param[in]  recieved  The recieved mask
+ * @param[in]  received  The received mask
  * @param[in]  from      The from process local id
  *
- * @return     1 if recieved message from, 0 otherwise.
+ * @return     1 if received message from, 0 otherwise.
  */
-int is_recieved_msg_from(executor *self, uint16_t recieved, local_id from);
+int is_received_msg_from(executor *self, uint16_t received, local_id from);
 
 /**
- * @brief      Determines if recieved from all children.
+ * @brief      Determines if received from all children.
  *
  * @param      self      The executor process
- * @param[in]  recieved  The recieved mask
+ * @param[in]  received  The received mask
  *
- * @return     1 if recieved from all children, 0 otherwise.
+ * @return     1 if received from all children, 0 otherwise.
  */
-int is_recieved_all_child(executor *self, uint16_t recieved);
+int is_received_all_child(executor *self, uint16_t received);
 
 /**
- * @brief      Mark mask bit connected with local_id process as recieved.
+ * @brief      Mark mask bit connected with local_id process as received.
  *
- * @param      recieved  The recieved mask
+ * @param      received  The received mask
  * @param[in]  from  The from process local id
  */
-void mark_recieved(uint16_t *recieved, local_id from);
+void mark_received(uint16_t *received, local_id from);
 
 /**
- * @brief      Wait for all messages with specified type recieved from children
+ * @brief      Wait for all messages with specified type received from children
  *
  * @param      self  The executor process
  * @param[in]  type  The message type

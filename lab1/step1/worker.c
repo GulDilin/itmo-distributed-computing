@@ -38,9 +38,7 @@ void parent_worker(executor *self) {
 }
 
 void run_worker(executor *self) {
-    debug_print(
-        "Run worker pid=%d parent=%d local_id=%d\n", self->pid, self->parent_pid, self->local_id
-    );
+    debug_print(debug_worker_run_fmt, self->pid, self->parent_pid, self->local_id);
 
     if (self->local_id == PARENT_ID) parent_worker(self);
     else child_worker(self);

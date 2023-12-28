@@ -36,13 +36,13 @@ void create_child_process(
 
         set_executor_channels(proc_n, executor, channels);
         close_unused_channels(proc_n, local_id, channels);
-        debug_print("Hello from Proc pid=%d parent=%d local_id=%d\n", pid, p_pid, local_id);
+        debug_print(debug_forked_fmt, pid, p_pid, local_id);
     }
 }
 
 void create_processes(int proc_n, pid_t parent_pid, executor *executor, channel **channels) {
-    debug_print("Hello from Proc pid=%d parent=%d local_id=%d\n", getpid(), getppid(), PARENT_ID);
-    debug_print("[pid=%d] Start create processes\n", getpid());
+    debug_print(debug_forked_fmt, getpid(), getppid(), PARENT_ID);
+    debug_print(debug_start_fork_fmt, getpid());
 
     executor->local_id = PARENT_ID;
     executor->proc_n = proc_n;
@@ -54,13 +54,13 @@ void create_processes(int proc_n, pid_t parent_pid, executor *executor, channel 
     for (int local_id = 1; local_id < proc_n; ++local_id) {
         create_child_process(proc_n, parent_pid, local_id, executor, channels);
     }
-    debug_print("[pid=%d] Processes created\n", getpid());
+    debug_print(debug_proc_created_fmt, getpid());
 }
 
 void init(int proc_n, channel ***channels) {
     *channels = malloc(proc_n * sizeof(channel *));
     for (int i = 0; i < proc_n; ++i) { (*channels)[i] = malloc(proc_n * sizeof(channel)); }
-    debug_print("malloc channels finished [channels=%p]\n", (void *)*channels);
+    debug_print(debug_malloc_ch_fin_fmt, (void *)*channels);
     if (*channels == NULL) {
         perror("Failed to create channels");
         exit(1);
@@ -88,12 +88,12 @@ void cleanup(int proc_n, channel **channels, executor *executor) {
 }
 
 int main(int argc, char **argv) {
-    debug_print("Start %d\n", 0);
+    debug_print(debug_main_start_fmt, 0);
 
     arguments arguments;
-    debug_print("Parse args %d\n", argc);
+    debug_print(debug_main_args_parse_fmt, argc);
     args_parse(argc, argv, &arguments);
-    debug_print("Parsed args %d. processes: %d\n", argc, arguments.proc_n);
+    debug_print(debug_main_args_parsed_fmt, argc, arguments.proc_n);
 
     channel **channels;
     init(arguments.proc_n, &channels);
@@ -103,10 +103,7 @@ int main(int argc, char **argv) {
     create_processes(arguments.proc_n, parent_pid, &executor, channels);
     if (is_parent(parent_pid)) close_unused_channels(arguments.proc_n, PARENT_ID, channels);
 
-    debug_print(
-        "Executor pid=%d parent=%d local_id=%d\n", executor.pid, executor.parent_pid,
-        executor.local_id
-    );
+    debug_print(debug_executor_info_fmt, executor.pid, executor.parent_pid, executor.local_id);
     run_worker(&executor);
 
     cleanup(arguments.proc_n, channels, &executor);

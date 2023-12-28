@@ -30,7 +30,7 @@ typedef struct {
     pid_t      pid;            ///< Executor process id
 } executor;
 
-#define SLEEP_RECEIVE_USEC 10  // 10 usec between recieve any msg
+#define SLEEP_RECEIVE_USEC 10  // 10 usec between receive any msg
 
 // int nanosleep(const struct timespec *req, struct timespec * rem);
 
@@ -100,7 +100,7 @@ int close_unused_channels(int8_t proc_n, local_id local_id, channel **channels);
  * @brief      Gets the channel read pipe handler by process local id.
  *
  * @param      executor  The executor info about self process
- * @param      from      local_id of process you want to recieve message from
+ * @param      from      local_id of process you want to receive message from
  *
  * @return     The channel read handler.
  */
