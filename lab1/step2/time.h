@@ -10,7 +10,7 @@
 #include "ipc.h"
 
 #define TIME_UNSET 0
-#define MIN_T      1
+#define MIN_T      0
 
 void next_tick(timestamp_t other_time);
 

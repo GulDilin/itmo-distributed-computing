@@ -75,23 +75,11 @@ int send_stop_msg_multicast(executor *self) {
     return tick_send_multicast(self, &msg);
 }
 
-int is_received_msg_from(executor *self, uint16_t received, local_id from) {
-    /*
-     * example:
-     *      self - (local_id = 5)
-     *      received - 0000 0000 0000 1010    (message received from processes 1
-     * and 3) from - 3
-     *
-     *      received >> 3
-     *              0000 0000 0000 0001
-     *      MASK    0000 0000 0000 0001
-     *      RESULT  0000 0000 0000 0001 (is received)
-     */
-    const uint16_t MASK = 1;
-    return (received >> from) & MASK;
+int is_received_msg_from(executor *self, uint8_t *received, local_id from) {
+    return received[from];
 }
 
-int is_received_all_child(executor *self, uint16_t received) {
+int is_received_all_child(executor *self, uint8_t *received) {
     for (int other_id = 0; other_id < self->proc_n; ++other_id) {
         if (other_id == self->local_id) continue;
         if (other_id == PARENT_ID) continue;
@@ -100,13 +88,13 @@ int is_received_all_child(executor *self, uint16_t received) {
     return 1;
 }
 
-void mark_received(uint16_t *received, local_id from) {
-    const uint16_t MASK = 1;
-    *received |= (MASK << from);
+void mark_received(uint8_t *received, local_id from) {
+    received[from] = 1;
 }
 
-int wait_receive_all_child_msg_by_type(executor *self, MessageType type) {
-    uint16_t received = 0;
+int wait_receive_all_child_msg_by_type(executor *self, MessageType type, on_message_t on_message) {
+    // uint16_t received = 0;
+    uint8_t  received[MAX_PROCESS_ID + 1] = {0};
     Message  msg;
     local_id from = 0;
     while (!is_received_all_child(self, received)) {
@@ -115,7 +103,10 @@ int wait_receive_all_child_msg_by_type(executor *self, MessageType type) {
         if (self->local_id == from) continue;
         if (is_received_msg_from(self, received, from)) continue;
         int rc = receive(self, from, &msg);
-        if (rc == 0 && msg.s_header.s_type == type) mark_received(&received, from);
+        if (rc == 0 && msg.s_header.s_type == type) {
+            if (on_message != NULL) on_message(self, &msg, from);
+            mark_received(received, from);
+        }
     }
     return 0;
 }
@@ -123,9 +114,18 @@ int wait_receive_all_child_msg_by_type(executor *self, MessageType type) {
 int wait_receive_msg_by_type(executor *self, MessageType type, local_id from) {
     Message  msg;
     uint16_t received = 0;
+    debug_ipc_print(debug_ipc_wait_msg_fmt, get_lamport_time(), self->local_id, from);
     while (!received) {
         int rc = receive(self, from, &msg);
         if (rc == 0 && msg.s_header.s_type == type) received = 1;
     }
     return 0;
+}
+
+void deserialize_struct(Message *msg, void *target, size_t t_size) {
+    memcpy(target, msg->s_payload, t_size);
+}
+
+void serialize_struct(Message *msg, void *target, size_t t_size) {
+    memcpy(msg->s_payload, target, t_size);
 }

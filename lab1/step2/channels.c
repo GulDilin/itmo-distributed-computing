@@ -52,9 +52,16 @@ int open_channels(int8_t proc_n, channel **channels) {
     return 0;
 }
 
+void close_channel_handler(channel_h *channel_h) {
+    if (*channel_h != -1) {
+        close(*channel_h);
+        *channel_h = -1;
+    }
+}
+
 int close_channel(channel **channels, local_id from, local_id dst) {
-    close(channels[from][dst].read_h);
-    close(channels[from][dst].write_h);
+    close_channel_handler(&channels[from][dst].read_h);
+    close_channel_handler(&channels[from][dst].write_h);
     return 0;
 }
 
@@ -84,9 +91,9 @@ int close_unused_channels(int8_t proc_n, local_id local_id, channel **channels) 
             close_channel(channels, other_id_2, other_id);
         }
         // close unused read end from local_id -> other_id
-        close(channels[local_id][other_id].read_h);
+        close_channel_handler(&channels[local_id][other_id].read_h);
         // close unused write end from other_id -> local_id
-        close(channels[other_id][local_id].write_h);
+        close_channel_handler(&channels[other_id][local_id].write_h);
     }
     return 0;
 }

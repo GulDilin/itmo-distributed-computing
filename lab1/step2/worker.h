@@ -52,4 +52,11 @@ void init_executor(
     balance_t start_balance
 );
 
+/**
+ * @brief      Method that will be called on main end for each executor
+ *
+ * @param      executor  The executor
+ */
+void cleanup_executor(executor *executor);
+
 #endif  // __ITMO_DISTRIBUTED_CLASS_WORKER__H

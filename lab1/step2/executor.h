@@ -15,7 +15,9 @@
 #include "ipc.h"
 
 typedef struct {
-    balance_t balance;  ///< Bank account balance state
+    balance_t       balance;  ///< Bank account balance state
+    BalanceHistory *history;
+    AllHistory     *all_history;
 } BankAccount;
 
 typedef struct {

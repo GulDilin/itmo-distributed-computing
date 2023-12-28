@@ -48,9 +48,16 @@ int send(void *self, local_id dst, const Message *msg) {
     int       bytes = write(channel_h, msg, msg_size);
     debug_ipc_print(
         debug_ipc_send_fmt, get_lamport_time(), executor->local_id, executor->local_id, dst,
-        get_msg_type_text(msg), msg->s_header.s_local_time
+        get_msg_type_text(msg), msg->s_header.s_local_time, bytes, channel_h
     );
-    return bytes > 0 ? 0 : 1;
+    int rc = bytes > 0 ? 0 : 1;
+    if (rc != 0) {
+        debug_ipc_print(
+            debug_ipc_send_failed_fmt, get_lamport_time(), executor->local_id, executor->local_id,
+            dst, get_msg_type_text(msg), msg->s_header.s_local_time
+        );
+    }
+    return rc;
 }
 
 int send_multicast(void *self, const Message *msg) {
@@ -71,13 +78,15 @@ int send_multicast(void *self, const Message *msg) {
 int receive(void *self, local_id from, Message *msg) {
     executor *executor = self;
     channel_h channel_h = get_channel_read_h(executor, from);
-    if (read(channel_h, &(msg->s_header), sizeof(MessageHeader)) == -1) return -1;
-    if (read(channel_h, msg->s_payload, msg->s_header.s_payload_len) == -1) return 1;
+    if (channel_h == -1) return -1;
+    int bytes = 0;
+    if ((bytes = read(channel_h, &(msg->s_header), sizeof(MessageHeader))) <= 0) return -1;
+    if ((bytes = read(channel_h, msg->s_payload, msg->s_header.s_payload_len)) < 0) return 1;
     timestamp_t prev_time = get_lamport_time();
     next_tick(msg->s_header.s_local_time);
     debug_ipc_print(
         debug_ipc_receive_fmt, get_lamport_time(), executor->local_id, executor->local_id, from,
-        get_msg_type_text(msg), msg->s_header.s_local_time, prev_time
+        get_msg_type_text(msg), msg->s_header.s_local_time, prev_time, bytes
     );
     return 0;
 }

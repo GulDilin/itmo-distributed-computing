@@ -22,6 +22,7 @@ static struct argp_option options[] = {
     {"debug", 'd', 0, OPTION_ARG_OPTIONAL, "Enable debug messages"},
     {"debug-ipc", 'i', 0, OPTION_ARG_OPTIONAL, "Enable debug messages for IPC"},
     {"debug-time", 't', 0, OPTION_ARG_OPTIONAL, "Enable debug messages for TIME"},
+    {"debug-worker", 'w', 0, OPTION_ARG_OPTIONAL, "Enable debug messages for WORKER"},
     {0}
 };
 
@@ -73,6 +74,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
             arguments->debug = 1;
             arguments->debug_ipc = 1;
             arguments->debug_time = 1;
+            arguments->debug_worker = 1;
             break;
 
         case 'i':
@@ -81,6 +83,10 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 
         case 't':
             arguments->debug_time = 1;
+            break;
+
+        case 'w':
+            arguments->debug_worker = 1;
             break;
 
         case ARGP_KEY_END:
@@ -104,6 +110,7 @@ void init_defaults(arguments *arguments) {
     arguments->debug = 0;
     arguments->debug_ipc = 0;
     arguments->debug_time = 0;
+    arguments->debug_worker = 0;
 }
 
 void args_parse(int argc, char **argv, arguments *arguments) {

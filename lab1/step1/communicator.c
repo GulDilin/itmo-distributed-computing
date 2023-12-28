@@ -1,12 +1,12 @@
+#include "communicator.h"
+
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <unistd.h>
-// #include <time.h>
 
 #include "channels.h"
-#include "communicator.h"
 #include "debug.h"
 #include "executor.h"
 #include "ipc.h"

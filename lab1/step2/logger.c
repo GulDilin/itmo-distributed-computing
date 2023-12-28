@@ -63,6 +63,7 @@ int log_msg(int fd, const char *fmt, va_list args) {
     va_list args_copy;
     va_copy(args_copy, args);
     vprintf(fmt, args_copy);
+    fflush(stdout);
     int rc = log_file_msg(fd, fmt, args);
     va_end(args_copy);
     return rc;

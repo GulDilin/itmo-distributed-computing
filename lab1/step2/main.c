@@ -33,6 +33,8 @@ void create_child_process(
 }
 
 void create_processes(int proc_n, pid_t parent_pid, executor *executor, channel **channels) {
+    printf("create_processes PROC_N=%d\n", proc_n);
+
     debug_print(debug_forked_fmt, getpid(), getppid(), PARENT_ID);
     debug_print(debug_start_fork_fmt, getpid());
 
@@ -65,10 +67,9 @@ void cleanup(int proc_n, channel **channels, executor *executor) {
     if (executor->local_id == PARENT_ID) {
         // wait all child processes
         while (wait(NULL) > 0) {}
-        close_channels(proc_n, channels);
     }
-    free(executor->ch_read);
-    free(executor->ch_write);
+    close_channels(proc_n, channels);
+    cleanup_executor(executor);
     for (int i = 0; i < proc_n; ++i) free(channels[i]);
     free(channels);
     close_pipes_log_f();
@@ -79,6 +80,7 @@ void set_debug_args(arguments *arguments) {
     set_debug(arguments->debug);
     set_debug_ipc(arguments->debug_ipc);
     set_debug_time(arguments->debug_time);
+    set_debug_worker(arguments->debug_worker);
 }
 
 int main(int argc, char **argv) {
@@ -95,6 +97,7 @@ int main(int argc, char **argv) {
     executor executor;
     pid_t    parent_pid = getpid();
     create_processes(arguments.proc_n, parent_pid, &executor, channels);
+    // close_unused_channels(arguments.proc_n, executor.local_id, channels);
     // if (is_parent(parent_pid)) close_unused_channels(arguments.proc_n, PARENT_ID, channels);
 
     debug_print(debug_executor_info_fmt, executor.pid, executor.parent_pid, executor.local_id);

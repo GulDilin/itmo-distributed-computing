@@ -16,6 +16,7 @@ typedef struct {
     uint8_t debug;
     uint8_t debug_ipc;
     uint8_t debug_time;
+    uint8_t debug_worker;
 } arguments;
 
 /**
