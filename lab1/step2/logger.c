@@ -20,13 +20,13 @@ int open_log_f(const char *fname) {
 
 int open_pipes_log_f() {
     pipes_log_fd = open_log_f(pipes_log);
-    debug_print("open_pipes_log_f [fd=%d]\n", pipes_log_fd);
+    debug_print(debug_log_open_file_fmt, pipes_log, pipes_log_fd);
     return pipes_log_fd;
 }
 
 int open_events_log_f() {
     events_log_fd = open_log_f(events_log);
-    debug_print("open_pipes_log_f [fd=%d]\n", events_log_fd);
+    debug_print(debug_log_open_file_fmt, events_log, events_log_fd);
     return events_log_fd;
 }
 
@@ -45,7 +45,7 @@ int log_file_msg(int fd, const char *fmt, va_list args) {
     va_copy(args_copy, args);
 
     size_t bufsz = vsnprintf(NULL, 0, fmt, args);
-    debug_print("log_file_msg [fd=%d] [bufsz=%lu]\n", fd, bufsz);
+    debug_print(debug_log_msg_file_fmt, fd, bufsz);
 
     if (bufsz < 1) return -1;
     bufsz += 1;

@@ -115,8 +115,6 @@ int wait_receive_all_child_msg_by_type(executor *self, MessageType type) {
         if (self->local_id == from) continue;
         if (is_received_msg_from(self, received, from)) continue;
         int rc = receive(self, from, &msg);
-        if (rc == 0) { debug_print(debug_receive_fmt, self->local_id, from, rc); }
-
         if (rc == 0 && msg.s_header.s_type == type) mark_received(&received, from);
     }
     return 0;

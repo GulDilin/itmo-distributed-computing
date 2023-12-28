@@ -23,10 +23,7 @@ void account_start(executor *self) {
 }
 
 void account_done(executor *self) {
-    log_events_msg(
-        log_done_fmt, get_lamport_time(), self->local_id, self->pid, self->parent_pid,
-        self->bank_account.balance
-    );
+    log_events_msg(log_done_fmt, get_lamport_time(), self->local_id, self->bank_account.balance);
     send_done_msg_multicast(self);
     wait_receive_all_child_msg_by_type(self, DONE);
     log_events_msg(log_received_all_done_fmt, get_lamport_time(), self->local_id);
@@ -44,16 +41,26 @@ void serialize_transfer_order(Message *msg, TransferOrder *order) {
 
 void update_balance_in(executor *self, balance_t amount) {
     self->bank_account.balance += amount;
+    debug_print(
+        debug_worker_balance_fmt, get_lamport_time(), self->local_id, self->bank_account.balance
+    );
     // TODO: update history
 }
 
 void update_balance_out(executor *self, balance_t amount) {
     self->bank_account.balance -= amount;
+    debug_print(
+        debug_worker_balance_fmt, get_lamport_time(), self->local_id, self->bank_account.balance
+    );
     // TODO: update history
 }
 
 void on_transfer_in(executor *self, Message *msg, TransferOrder *order) {
     // got incoming money
+    debug_print(
+        debug_worker_transfer_in, get_lamport_time(), self->local_id, order->s_src,
+        msg->s_header.s_local_time, self->bank_account.balance
+    );
     update_balance_in(self, order->s_amount);
     log_events_msg(
         log_transfer_in_fmt, get_lamport_time(), self->local_id, order->s_amount, order->s_src
@@ -65,6 +72,10 @@ void on_transfer_in(executor *self, Message *msg, TransferOrder *order) {
 }
 
 void on_transfer_out(executor *self, Message *msg, TransferOrder *order) {
+    debug_print(
+        debug_worker_transfer_out, get_lamport_time(), self->local_id, order->s_dst,
+        msg->s_header.s_local_time, self->bank_account.balance
+    );
     update_balance_out(self, order->s_amount);
     log_events_msg(
         log_transfer_out_fmt, get_lamport_time(), self->local_id, order->s_amount, order->s_dst
@@ -134,14 +145,11 @@ void router_worker(executor *self) {
     log_events_msg(log_received_all_done_fmt, get_lamport_time(), self->local_id);
     // TODO: get history
 
-    log_events_msg(
-        log_done_fmt, get_lamport_time(), self->local_id, self->pid, self->parent_pid,
-        self->bank_account.balance
-    );
+    log_events_msg(log_done_fmt, get_lamport_time(), self->local_id, self->bank_account.balance);
 }
 
 void run_worker(executor *self) {
-    debug_print(debug_run_worker_fmt, self->pid, self->parent_pid, self->local_id);
+    debug_print(debug_worker_run_fmt, self->pid, self->parent_pid, self->local_id);
     if (self->local_id == PARENT_ID) router_worker(self);
     else account_worker(self);
 }

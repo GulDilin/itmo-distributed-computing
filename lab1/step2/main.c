@@ -75,13 +75,19 @@ void cleanup(int proc_n, channel **channels, executor *executor) {
     close_events_log_f();
 }
 
-int main(int argc, char **argv) {
-    debug_print("Start %d\n", 0);
+void set_debug_args(arguments *arguments) {
+    set_debug(arguments->debug);
+    set_debug_ipc(arguments->debug_ipc);
+    set_debug_time(arguments->debug_time);
+}
 
+int main(int argc, char **argv) {
+    debug_print(debug_main_start_fmt, 0);
     arguments arguments;
-    debug_print("Parse args %d\n", argc);
+    debug_print(debug_main_args_parse_fmt, argc);
     args_parse(argc, argv, &arguments);
-    debug_print("Parsed args %d. processes: %d\n", argc, arguments.proc_n);
+    set_debug_args(&arguments);
+    debug_print(debug_main_args_parsed_fmt, argc, arguments.proc_n);
 
     channel **channels;
     init(arguments.proc_n, &channels);
@@ -89,7 +95,7 @@ int main(int argc, char **argv) {
     executor executor;
     pid_t    parent_pid = getpid();
     create_processes(arguments.proc_n, parent_pid, &executor, channels);
-    if (is_parent(parent_pid)) close_unused_channels(arguments.proc_n, PARENT_ID, channels);
+    // if (is_parent(parent_pid)) close_unused_channels(arguments.proc_n, PARENT_ID, channels);
 
     debug_print(debug_executor_info_fmt, executor.pid, executor.parent_pid, executor.local_id);
     run_worker(&executor);

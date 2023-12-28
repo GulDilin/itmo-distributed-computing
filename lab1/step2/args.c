@@ -19,6 +19,9 @@ static char args_doc[] = "";
 /* The options we understand. */
 static struct argp_option options[] = {
     {"process", 'p', "NUMBER OF PROCESSES", 0, "Amount of processes (2-15)"},
+    {"debug", 'd', 0, OPTION_ARG_OPTIONAL, "Enable debug messages"},
+    {"debug-ipc", 'i', 0, OPTION_ARG_OPTIONAL, "Enable debug messages for IPC"},
+    {"debug-time", 't', 0, OPTION_ARG_OPTIONAL, "Enable debug messages for TIME"},
     {0}
 };
 
@@ -66,6 +69,20 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
             break;
         }
 
+        case 'd':
+            arguments->debug = 1;
+            arguments->debug_ipc = 1;
+            arguments->debug_time = 1;
+            break;
+
+        case 'i':
+            arguments->debug_ipc = 1;
+            break;
+
+        case 't':
+            arguments->debug_time = 1;
+            break;
+
         case ARGP_KEY_END:
             // check if not enough args
             if (arguments->proc_n == 0) {
@@ -84,6 +101,9 @@ static struct argp argp = {options, parse_opt, args_doc, doc};
 
 void init_defaults(arguments *arguments) {
     arguments->proc_n = 0;
+    arguments->debug = 0;
+    arguments->debug_ipc = 0;
+    arguments->debug_time = 0;
 }
 
 void args_parse(int argc, char **argv, arguments *arguments) {

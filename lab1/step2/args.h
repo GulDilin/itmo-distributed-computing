@@ -13,6 +13,9 @@
 /* Used by main to communicate with parse_opt. */
 typedef struct {
     uint8_t proc_n;
+    uint8_t debug;
+    uint8_t debug_ipc;
+    uint8_t debug_time;
 } arguments;
 
 /**

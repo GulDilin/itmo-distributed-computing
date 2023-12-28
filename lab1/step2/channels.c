@@ -10,7 +10,6 @@
 #include "executor.h"
 #include "ipc.h"
 #include "logger.h"
-#include "worker.h"
 
 int init_channel(channel *channel) {
     int fd[2];
@@ -24,7 +23,7 @@ int init_channel(channel *channel) {
 
     channel->read_h = fd[0];
     channel->write_h = fd[1];
-    debug_print("init_channel read_h=%3d write_h=%3d\n", fd[0], fd[1]);
+    debug_print(debug_channel_init_fmt, fd[0], fd[1]);
 
     return fd[0] > 0 && fd[1] > 0 ? 0 : 1;
 }
@@ -34,14 +33,12 @@ int open_channel(channel **channels, local_id from, local_id dst) {
     ch->read_h = 0;
     ch->write_h = 0;
     int rc = init_channel(ch);
-    debug_print(
-        "open_channel %d -> %d [rc=%d] [ %2d -> %2d ]\n", from, dst, rc, ch->read_h, ch->write_h
-    );
+    debug_print(debug_channel_open_fmt, from, dst, rc, ch->read_h, ch->write_h);
     return rc;
 }
 
 int open_channels(int8_t proc_n, channel **channels) {
-    debug_print("open_channels start. proc_n = %d\n", proc_n);
+    debug_print(debug_channel_open_start_fmt, proc_n);
     for (int local_id = 0; local_id < proc_n; ++local_id) {
         for (int other_id = 0; other_id < proc_n; ++other_id) {
             // do not open channel for itself
@@ -112,11 +109,11 @@ void set_executor_channels(int8_t proc_n, void *self, channel **channels) {
         // read handler from channel local_id -> other_id
         executor->ch_write[other_id] = channels[local_id][other_id].write_h;
         debug_print(
-            "[local_id=%d] ch w %d -> %d: %d\n", local_id, local_id, other_id,
+            debug_channel_set_fmt, local_id, 'w', local_id, other_id,
             channels[local_id][other_id].write_h
         );
         debug_print(
-            "[local_id=%d] ch r %d -> %d: %d\n", local_id, other_id, local_id,
+            debug_channel_set_fmt, local_id, 'r', other_id, local_id,
             channels[other_id][local_id].read_h
         );
     }

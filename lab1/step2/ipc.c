@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include "banking.h"
+
 int usleep(__useconds_t useconds);
 
 #include "channels.h"
@@ -14,21 +16,49 @@ size_t compute_msg_size(const Message *msg) {
     return sizeof(MessageHeader) + msg->s_header.s_payload_len;
 }
 
+char *get_msg_type_text(const Message *msg) {
+    switch (msg->s_header.s_type) {
+        case STARTED:
+            return "STARTED";
+        case DONE:
+            return "DONE";
+        case TRANSFER:
+            return "TRANSFER";
+        case ACK:
+            return "ACK";
+        case STOP:
+            return "STOP";
+        case BALANCE_HISTORY:
+            return "BALANCE_HISTORY";
+        case CS_REQUEST:
+            return "CS_REQUEST";
+        case CS_REPLY:
+            return "CS_REPLY";
+        case CS_RELEASE:
+            return "CS_RELEASE";
+        default:
+            return "UNDEFINED";
+    }
+}
+
 int send(void *self, local_id dst, const Message *msg) {
     executor *executor = self;
     uint16_t  msg_size = compute_msg_size(msg);
     channel_h channel_h = get_channel_write_h(executor, dst);
     int       bytes = write(channel_h, msg, msg_size);
-    debug_print(
-        debug_send_fmt, executor->local_id, executor->pid, executor->local_id, dst, channel_h,
-        msg_size, bytes
+    debug_ipc_print(
+        debug_ipc_send_fmt, get_lamport_time(), executor->local_id, executor->local_id, dst,
+        get_msg_type_text(msg), msg->s_header.s_local_time
     );
     return bytes > 0 ? 0 : 1;
 }
 
 int send_multicast(void *self, const Message *msg) {
     executor *executor = self;
-    debug_print(debug_send_multicast_fmt, executor->local_id, executor->pid, executor->proc_n);
+    debug_ipc_print(
+        debug_ipc_send_multicast_fmt, get_lamport_time(), executor->local_id, executor->local_id,
+        get_msg_type_text(msg), msg->s_header.s_local_time
+    );
     int rc = 0;
     for (int dst = 0; dst < executor->proc_n; ++dst) {
         if (executor->local_id == dst) continue;
@@ -43,7 +73,12 @@ int receive(void *self, local_id from, Message *msg) {
     channel_h channel_h = get_channel_read_h(executor, from);
     if (read(channel_h, &(msg->s_header), sizeof(MessageHeader)) == -1) return -1;
     if (read(channel_h, msg->s_payload, msg->s_header.s_payload_len) == -1) return 1;
+    timestamp_t prev_time = get_lamport_time();
     next_tick(msg->s_header.s_local_time);
+    debug_ipc_print(
+        debug_ipc_receive_fmt, get_lamport_time(), executor->local_id, executor->local_id, from,
+        get_msg_type_text(msg), msg->s_header.s_local_time, prev_time
+    );
     return 0;
 }
 
