@@ -7,7 +7,10 @@
 #ifndef __ITMO_DISTRIBUTED_CLASS_DEBUG__H
 #define __ITMO_DISTRIBUTED_CLASS_DEBUG__H
 
-#define DEBUG 0
+#include <stdio.h>
+#include <stdlib.h>
+
+#define DEBUG 1
 
 #define debug_print(fmt, ...)                         \
     do {                                              \
