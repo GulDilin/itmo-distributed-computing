@@ -2,6 +2,7 @@
 
 #include "communicator.h"
 #include "debug.h"
+#include "executor.h"
 #include "ipc.h"
 #include "logger.h"
 #include "pa1.h"

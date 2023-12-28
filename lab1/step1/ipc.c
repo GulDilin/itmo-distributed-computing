@@ -7,6 +7,7 @@ int usleep(__useconds_t useconds);
 
 #include "channels.h"
 #include "debug.h"
+#include "executor.h"
 #include "ipc.h"
 
 size_t compute_msg_size(const Message *msg) {

@@ -8,6 +8,7 @@
 #define __ITMO_DISTRIBUTED_CLASS_COMMUNICATOR__H
 
 #include "channels.h"
+#include "executor.h"
 #include "ipc.h"
 
 /**

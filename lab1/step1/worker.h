@@ -8,6 +8,7 @@
 #define __ITMO_DISTRIBUTED_CLASS_WORKER__H
 
 #include "channels.h"
+#include "executor.h"
 
 /**
  * @brief      Child worker main logic

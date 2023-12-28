@@ -10,25 +10,15 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/types.h>
-#include <unistd.h>
 
 #include "ipc.h"
 
 typedef int channel_h;
 
 typedef struct {
-    channel_h read_h;   ///< read handler for pipe
-    channel_h write_h;  ///< write handler for pipe
+    channel_h read_h;          ///< read handler for pipe
+    channel_h write_h;         ///< write handler for pipe
 } channel;
-
-typedef struct {
-    local_id   local_id;       ///< Local process id (usually index of created process)
-    channel_h *ch_read;        ///< Array of reading pipe handlers
-    channel_h *ch_write;       ///< Array of writing pipe handlers
-    int8_t     proc_n;         ///< Number of processes
-    pid_t      parent_pid;     ///< Parend process id
-    pid_t      pid;            ///< Executor process id
-} executor;
 
 #define SLEEP_RECEIVE_USEC 10  // 10 usec between receive any msg
 
@@ -83,7 +73,7 @@ int open_channels(int8_t proc_n, channel **channels);
  * @param      executor  The executor
  * @param      channels  The channels
  */
-void set_executor_channels(int8_t proc_n, executor *executor, channel **channels);
+void set_executor_channels(int8_t proc_n, void *executor, channel **channels);
 
 /**
  * @brief      Closes unused channels.
@@ -99,22 +89,22 @@ int close_unused_channels(int8_t proc_n, local_id local_id, channel **channels);
 /**
  * @brief      Gets the channel read pipe handler by process local id.
  *
- * @param      executor  The executor info about self process
+ * @param      self      The executor info about self process
  * @param      from      local_id of process you want to receive message from
  *
  * @return     The channel read handler.
  */
-channel_h get_channel_read_h(executor *self, local_id from);
+channel_h get_channel_read_h(void *self, local_id from);
 
 /**
  * @brief      Gets the channel write pipe handler by process local id.
  *
- * @param      executor  The executor info about self process
+ * @param      self      The executor info about self process
  * @param      from      local_id of process you want to send message to
  *
  * @return     The channel write handler.
  */
-channel_h get_channel_write_h(executor *self, local_id dst);
+channel_h get_channel_write_h(void *self, local_id dst);
 
 /**
  * @brief      Closes a channel from -> dst.

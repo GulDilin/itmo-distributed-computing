@@ -1,12 +1,13 @@
+#include "channels.h"
+
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
-// #include <time.h>
 
-#include "channels.h"
 #include "debug.h"
+#include "executor.h"
 #include "ipc.h"
 #include "logger.h"
 
@@ -90,8 +91,9 @@ int close_unused_channels(int8_t proc_n, local_id local_id, channel **channels) 
     return 0;
 }
 
-void set_executor_channels(int8_t proc_n, executor *executor, channel **channels) {
-    local_id local_id = executor->local_id;
+void set_executor_channels(int8_t proc_n, void *self, channel **channels) {
+    executor *executor = self;
+    local_id  local_id = executor->local_id;
 
     executor->ch_read = malloc(proc_n * sizeof(channel_h));
     executor->ch_write = malloc(proc_n * sizeof(channel_h));
@@ -117,10 +119,12 @@ void set_executor_channels(int8_t proc_n, executor *executor, channel **channels
     }
 }
 
-channel_h get_channel_read_h(executor *executor, local_id from) {
+channel_h get_channel_read_h(void *self, local_id from) {
+    executor *executor = self;
     return executor->ch_read[from];
 }
 
-channel_h get_channel_write_h(executor *executor, local_id dst) {
+channel_h get_channel_write_h(void *self, local_id dst) {
+    executor *executor = self;
     return executor->ch_write[dst];
 }
