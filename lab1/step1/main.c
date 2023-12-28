@@ -75,8 +75,8 @@ void init(int proc_n, channel ***channels) {
 
 void cleanup(int proc_n, channel **channels, executor *executor) {
     if (executor->local_id == PARENT_ID) {
-        while (wait(NULL) > 0)
-            ;  // wait all child processes
+        // wait all child processes
+        while (wait(NULL) > 0) {}
         close_channels(proc_n, channels);
     }
     free(executor->ch_read);
