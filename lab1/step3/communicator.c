@@ -76,7 +76,7 @@ int send_request_cs_msg_multicast(executor *self) {
 
 int send_reply_cs_msg(executor *self, local_id to) {
     Message msg;
-    construct_msg(&msg, CS_REQUEST, 0);
+    construct_msg(&msg, CS_REPLY, 0);
     return tick_send(self, to, &msg);
 }
 
@@ -124,15 +124,24 @@ int wait_receive_all_child_msg_by_type(executor *self, MessageType type, on_mess
 int receive_any_cb(executor *self, on_message_t on_message) {
     Message  msg;
     local_id from = 0;
-    while (1) {
-        if (self->proc_n - 1) usleep(SLEEP_RECEIVE_USEC);
-        from = (from + 1) % self->proc_n;
+    for (local_id from = 0; from < self->proc_n; ++from) {
         if (self->local_id == from) continue;
         if (receive(self, from, &msg) == 0) {
             if (on_message != NULL) on_message(self, &msg, from);
             return 0;
         }
     }
+    return 1;
+    // while (1) {
+    // if (self->proc_n - 1) usleep(SLEEP_RECEIVE_USEC);
+    // from = (from + 1) % self->proc_n;
+    // if (self->local_id == from) continue;
+    // if (receive(self, from, &msg) == 0) {
+    //     if (on_message != NULL) on_message(self, &msg, from);
+    //     return 0;
+    // }
+    //     return 0;
+    // }
 }
 
 int wait_receive_msg_by_type(executor *self, MessageType type, local_id from) {

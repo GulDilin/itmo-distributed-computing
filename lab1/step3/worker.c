@@ -16,22 +16,27 @@
 #include "pa2345.h"
 #include "time.h"
 
-void child_start(executor *self) {
-    log_events_msg(
-        log_started_fmt, get_lamport_time(), self->local_id, self->pid, self->parent_pid, 0
-    );
-    send_started_msg_multicast(self);
-    wait_receive_all_child_msg_by_type(self, STARTED, NULL);
-    log_events_msg(log_received_all_started_fmt, get_lamport_time(), self->local_id);
-}
-
+/**
+ * @brief      Determines whether the specified self and other children is all done.
+ *
+ * @param      self  The object
+ *
+ * @return     True if the specified self is all done, False otherwise.
+ */
 int is_all_done(executor *self) {
-    for (int i = 0; i < self->proc_n; ++i) {
+    for (int i = 1; i < self->proc_n; ++i) {
         if (!self->proc_done[i]) return 0;
     }
     return 1;
 }
 
+/**
+ * @brief      Determines whether the specified self is done.
+ *
+ * @param      self  The object
+ *
+ * @return     True if the specified self is self done, False otherwise.
+ */
 int is_self_done(executor *self) {
     return self->proc_done[self->local_id];
 }
@@ -64,6 +69,15 @@ void on_message(executor *self, Message *msg, local_id from) {
     }
 }
 
+void child_start(executor *self) {
+    log_events_msg(
+        log_started_fmt, get_lamport_time(), self->local_id, self->pid, self->parent_pid, 0
+    );
+    send_started_msg_multicast(self);
+    wait_receive_all_child_msg_by_type(self, STARTED, NULL);
+    log_events_msg(log_received_all_started_fmt, get_lamport_time(), self->local_id);
+}
+
 void child_done(executor *self) {
     set_done(self, self->local_id);
     log_events_msg(log_done_fmt, get_lamport_time(), self->local_id, 0);
@@ -88,8 +102,9 @@ void do_main_work(executor *self, int *loop_idx) {
 void child_worker(executor *self) {
     child_start(self);
     int main_loop_idx = 1;
+    debug_worker_print(debug_worker_start_loop_fmt, get_lamport_time(), self->local_id);
     while (!is_all_done(self)) {
-        receive_any_cb(self, on_message);
+        if (receive_any_cb(self, on_message) != 0) usleep(SLEEP_RECEIVE_USEC);
         if (is_self_done(self)) continue;
         if (self->use_lock && request_cs(self) != 0) continue;
         do_main_work(self, &main_loop_idx);
@@ -125,6 +140,8 @@ void init_executor(
     executor->pid = pid;
     executor->parent_pid = p_pid;
     executor->use_lock = use_lock;
+
+    init_lock(executor);
 
     for (int i = 0; i <= MAX_PROCESS_ID; ++i) { executor->proc_done[i] = 0; }
 

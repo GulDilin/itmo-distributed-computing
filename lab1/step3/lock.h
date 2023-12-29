@@ -62,4 +62,11 @@ void on_reply_cs(executor* self, Message* msg, local_id from);
  */
 void on_release_cs(executor* self, Message* msg, local_id from);
 
+/**
+ * @brief      Initializes the lock.
+ *
+ * @param      self  The executor
+ */
+void init_lock(executor* self);
+
 #endif  // __ITMO_DISTRIBUTED_CLASS_LOCK__H

@@ -101,6 +101,7 @@ static const char* const debug_main_args_parsed_fmt = "Parsed args %d. processes
 static const char* const debug_executor_info_fmt = "Executor pid=%4d parent=%4d local_id=%2d\n";
 
 static const char* const debug_worker_run_fmt = "Run worker pid=%d parent=%d local_id=%d\n";
+static const char* const debug_worker_start_loop_fmt = "%2d: [local_id=%2d] worker run main loop\n";
 
 static const char* const debug_time_next_tick_fmt = "%2d: next_tick [other_time=%2d] result: %2d\n";
 
