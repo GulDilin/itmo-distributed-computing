@@ -25,6 +25,22 @@ void set_debug_worker(int is_enabled) {
     is_debug_worker_enabled = is_enabled;
 }
 
+int get_debug() {
+    return is_debug_enabled;
+}
+
+int get_debug_ipc() {
+    return is_debug_ipc_enabled;
+}
+
+int get_debug_time() {
+    return is_debug_time_enabled;
+}
+
+int get_debug_worker() {
+    return is_debug_worker_enabled;
+}
+
 void debug_print(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);

@@ -38,6 +38,26 @@ void set_debug_time(int is_enabled);
 void set_debug_worker(int is_enabled);
 
 /**
+ * @brief      Gets the debug.
+ */
+int get_debug();
+
+/**
+ * @brief      Gets the debug ipc.
+ */
+int get_debug_ipc();
+
+/**
+ * @brief      Gets the debug time.
+ */
+int get_debug_time();
+
+/**
+ * @brief      Gets the debug worker.
+ */
+int get_debug_worker();
+
+/**
  * @brief      Print message if debug is enabled
  *
  * @param      fmt        The format

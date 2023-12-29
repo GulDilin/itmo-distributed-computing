@@ -1,6 +1,7 @@
 #include "lock.h"
 
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "communicator.h"
@@ -12,13 +13,47 @@
 
 static Lock lock;
 
+void print_queue(const executor* self) {
+    if (!get_debug_worker()) return;
+    char buffer[256];
+    int  printed = 0;
+    printed += sprintf(
+        buffer, "[local_id=%d] [active_t=%2d] queue (%2d): ", self->local_id,
+        lock.active_request.s_time, lock.queue.size
+    );
+    for (int i = 0; i < lock.queue.size; ++i) {
+        printed += sprintf(
+            buffer + printed, "[%d, %d]", lock.queue.buffer[i].s_time, lock.queue.buffer[i].s_id
+        );
+    }
+    printf("%s\n", buffer);
+}
+
+void print_reply_at(const executor* self) {
+    if (!get_debug()) return;
+    char buffer[256];
+    int  printed = 0;
+    printed += sprintf(
+        buffer, "[local_id=%d] [active_t=%2d] reply_at: ", self->local_id,
+        lock.active_request.s_time
+    );
+    for (int i = 1; i < self->proc_n; ++i) {
+        printed += sprintf(buffer + printed, "%2d | ", lock.replied_at[i]);
+    }
+    printf("%s\n", buffer);
+}
+
 void push_request(const executor* self, LockRequest* req) {
     uint8_t idx = 0;  // index of item where to insert new request
     while (lock.queue.size > 0 && idx < lock.queue.size
-           && lock.queue.buffer[idx].s_time < req->s_time
+           && lock.queue.buffer[idx].s_time <= req->s_time
            && lock.queue.buffer[idx].s_id < req->s_id) {
         idx++;
     }
+    print_queue(self);
+    debug_worker_print(
+        "[local_id=%d] push req [%d, %d] to idx %d\n", self->local_id, req->s_time, req->s_id
+    );
     /*
      * Move end part of queue if insert index is not the last
      *           N
@@ -37,6 +72,7 @@ void push_request(const executor* self, LockRequest* req) {
     }
     lock.queue.buffer[idx] = *req;
     lock.queue.size++;
+    print_queue(self);
 }
 
 void pop_request(const executor* self, local_id from) {
@@ -62,6 +98,7 @@ void pop_request(const executor* self, local_id from) {
         );
     }
     lock.queue.size--;
+    print_queue(self);
 }
 
 void clean_replied(const executor* self) {
@@ -77,7 +114,9 @@ void init_lock(executor* self) {
 }
 
 int is_all_replied_after_request(const executor* self) {
-    for (int i = 1; i < MAX_PROCESS_ID + 1; ++i) {
+    print_reply_at(self);
+    for (int i = 1; i < self->proc_n; ++i) {
+        if (i == self->local_id) continue;
         if (lock.replied_at[i] <= lock.active_request.s_time) return 0;
     }
     return 1;
@@ -110,10 +149,11 @@ int request_cs(const void* self) {
     if (lock.state == LOCK_ACTIVE) return 0;
     if (lock.state == LOCK_INACTIVE) {
         clean_replied(self);
-        LockRequest req = {.s_id = s_executor->local_id, .s_time = get_lamport_time()};
-        push_request(s_executor, &req);
         send_request_cs_msg_multicast(s_executor);
         lock.state = LOCK_WAITING;
+        LockRequest req = {.s_id = s_executor->local_id, .s_time = get_lamport_time()};
+        lock.active_request = req;
+        push_request(s_executor, &req);
     }
     if (can_activate_lock(s_executor)) {
         lock.state = LOCK_ACTIVE;
@@ -130,6 +170,7 @@ int release_cs(const void* self) {
     if (lock.state == LOCK_ACTIVE) {
         send_release_cs_msg_multicast(s_executor);
         pop_request(s_executor, s_executor->local_id);
+        lock.state = LOCK_INACTIVE;
         debug_worker_print(debug_lock_released_fmt, get_lamport_time(), s_executor->local_id);
     }
 }
