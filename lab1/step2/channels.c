@@ -21,6 +21,11 @@ int init_channel(channel *channel) {
     flags |= O_NONBLOCK;
     if (fcntl(fd[0], F_SETFL, flags)) return 1;
 
+    // set non blocking flag for write pipe handler
+    flags = fcntl(fd[1], F_GETFD);
+    flags |= O_NONBLOCK;
+    if (fcntl(fd[1], F_SETFL, flags)) return 1;
+
     channel->read_h = fd[0];
     channel->write_h = fd[1];
     debug_print(debug_channel_init_fmt, fd[0], fd[1]);
