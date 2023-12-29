@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include <unistd.h>
 
-#include "banking.h"
 #include "channels.h"
 #include "debug.h"
 #include "executor.h"
@@ -79,7 +78,9 @@ int receive(void *self, local_id from, Message *msg) {
     if (channel_h == -1) return -1;
     int bytes = 0;
     if ((bytes = read(channel_h, &(msg->s_header), sizeof(MessageHeader))) <= 0) return -1;
-    if ((bytes = read(channel_h, msg->s_payload, msg->s_header.s_payload_len)) < 0) return 1;
+    if (msg->s_header.s_payload_len > 0
+        && (bytes = read(channel_h, msg->s_payload, msg->s_header.s_payload_len)) <= 0)
+        return 1;
     timestamp_t prev_time = get_lamport_time();
     next_tick(msg->s_header.s_local_time);
     debug_ipc_print(

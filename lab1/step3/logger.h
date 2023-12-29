@@ -9,29 +9,10 @@
 
 #include <stdarg.h>
 
-static const char *const log_channel_opened_fmt = "Channel opened (%5d -> %5d)\n";
+static const char *const log_channel_opened_fmt
+    = "Channel opened (%2d -> %2d) [w] -> [r] [%2d] -> [%2d]\n";
 
-static const char *const log_channel_closed_fmt = "Channel closed (%5d -> %5d)\n";
-
-/**
- * @brief      Logs a channel opened message.
- *
- * @param[in]  from  The from process local id
- * @param[in]  dst   The destination process local id
- *
- * @return     0 on success, any non-zero value on error
- */
-int log_channel_opened(int from, int dst);
-
-/**
- * @brief      Logs a channel closed message.
- *
- * @param[in]  from  The from process local id
- * @param[in]  dst   The destination process local id
- *
- * @return     0 on success, any non-zero value on error
- */
-int log_channel_closed(int from, int dst);
+static const char *const log_channel_closed_fmt = "Channel closed (%2d -> %2d)\n";
 
 /**
  * @brief      Opens a log file handler.

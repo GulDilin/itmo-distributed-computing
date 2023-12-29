@@ -12,7 +12,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "banking.h"
 #include "ipc.h"
 
 typedef int channel_h;

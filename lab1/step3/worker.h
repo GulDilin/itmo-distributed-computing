@@ -10,7 +10,6 @@
 #include <stdint.h>
 #include <unistd.h>
 
-#include "banking.h"
 #include "channels.h"
 #include "executor.h"
 #include "ipc.h"
@@ -20,14 +19,14 @@
  *
  * @param      self  The object
  */
-void account_worker(executor *self);
+void child_worker(executor *self);
 
 /**
  * @brief      Parent worker main logic
  *
  * @param      self  The executor
  */
-void router_worker(executor *self);
+void parent_worker(executor *self);
 
 /**
  * @brief      Run worker based on executor
@@ -45,11 +44,11 @@ void run_worker(executor *self);
  * @param[in]  proc_n         The number of processes
  * @param[in]  pid            The pid of executor
  * @param[in]  p_pid          The pid of executor parent
- * @param[in]  start_balance  The start balance of bank account
+ * @param[in]  use_lock       Indicates if lock is used
  */
 void init_executor(
     executor *executor, channel **channels, local_id local_id, int proc_n, pid_t pid, pid_t p_pid,
-    balance_t start_balance
+    uint8_t use_lock
 );
 
 /**

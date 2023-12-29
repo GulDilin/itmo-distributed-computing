@@ -6,7 +6,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "banking.h"
 #include "channels.h"
 #include "debug.h"
 #include "ipc.h"
@@ -56,7 +55,7 @@ int send_started_msg_multicast(executor *self) {
     Message msg;
     construct_msg_text(
         &msg, STARTED, log_started_fmt, get_lamport_time(), self->local_id, self->pid,
-        self->parent_pid, self->bank_account.balance
+        self->parent_pid
     );
     return tick_send_multicast(self, &msg);
 }
@@ -64,15 +63,26 @@ int send_started_msg_multicast(executor *self) {
 int send_done_msg_multicast(executor *self) {
     Message msg;
     construct_msg_text(
-        &msg, DONE, log_done_fmt, get_lamport_time(), self->local_id, self->pid, self->parent_pid,
-        self->bank_account.balance
+        &msg, DONE, log_done_fmt, get_lamport_time(), self->local_id, self->pid, self->parent_pid
     );
     return tick_send_multicast(self, &msg);
 }
 
-int send_stop_msg_multicast(executor *self) {
+int send_request_cs_msg_multicast(executor *self) {
     Message msg;
-    construct_msg(&msg, STOP, 0);
+    construct_msg(&msg, CS_REQUEST, 0);
+    return tick_send_multicast(self, &msg);
+}
+
+int send_reply_cs_msg(executor *self, local_id to) {
+    Message msg;
+    construct_msg(&msg, CS_REQUEST, 0);
+    return tick_send(self, to, &msg);
+}
+
+int send_release_cs_msg_multicast(executor *self) {
+    Message msg;
+    construct_msg(&msg, CS_RELEASE, 0);
     return tick_send_multicast(self, &msg);
 }
 
@@ -94,12 +104,11 @@ void mark_received(uint8_t *received, local_id from) {
 }
 
 int wait_receive_all_child_msg_by_type(executor *self, MessageType type, on_message_t on_message) {
-    // uint16_t received = 0;
     uint8_t  received[MAX_PROCESS_ID + 1] = {0};
     Message  msg;
     local_id from = 0;
     while (!is_received_all_child(self, received)) {
-        if (self->proc_n - 1) usleep(SLEEP_RECEIVE_USEC);
+        if (from == self->proc_n - 1) usleep(SLEEP_RECEIVE_USEC);
         from = (from + 1) % self->proc_n;
         if (self->local_id == from) continue;
         if (is_received_msg_from(self, received, from)) continue;
@@ -110,6 +119,20 @@ int wait_receive_all_child_msg_by_type(executor *self, MessageType type, on_mess
         }
     }
     return 0;
+}
+
+int receive_any_cb(executor *self, on_message_t on_message) {
+    Message  msg;
+    local_id from = 0;
+    while (1) {
+        if (self->proc_n - 1) usleep(SLEEP_RECEIVE_USEC);
+        from = (from + 1) % self->proc_n;
+        if (self->local_id == from) continue;
+        if (receive(self, from, &msg) == 0) {
+            if (on_message != NULL) on_message(self, &msg, from);
+            return 0;
+        }
+    }
 }
 
 int wait_receive_msg_by_type(executor *self, MessageType type, local_id from) {

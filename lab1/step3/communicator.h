@@ -55,13 +55,32 @@ int send_started_msg_multicast(executor *self);
 int send_done_msg_multicast(executor *self);
 
 /**
- * @brief      Sends a stop message multicast.
+ * @brief      Sends a request lock message multicast.
  *
- * @param      self  The executor process
+ * @param      self  The object
  *
  * @return     0 on success, any non-zero value on error
  */
-int send_stop_msg_multicast(executor *self);
+int send_request_cs_msg_multicast(executor *self);
+
+/**
+ * @brief      Sends a reply lock message.
+ *
+ * @param      self  The object
+ * @param[in]  to    The destination process local id
+ *
+ * @return     0 on success, any non-zero value on error
+ */
+int send_reply_cs_msg(executor *self, local_id to);
+
+/**
+ * @brief      Sends a release lock message multicast.
+ *
+ * @param      self  The object
+ *
+ * @return     0 on success, any non-zero value on error
+ */
+int send_release_cs_msg_multicast(executor *self);
 
 /**
  * @brief      Determines if message received from.
@@ -123,6 +142,16 @@ int wait_receive_all_child_msg_by_type(executor *self, MessageType type, on_mess
  * @return     0 on success, any non-zero value on error
  */
 int wait_receive_msg_by_type(executor *self, MessageType type, local_id from);
+
+/**
+ * @brief      Recieve any message and run callback
+ *
+ * @param      self        The executor process
+ * @param[in]  on_message  On message callback
+ *
+ * @return     0 on success, any non-zero value on error
+ */
+int receive_any_cb(executor *self, on_message_t on_message);
 
 /**
  * @brief      Update time and send a message

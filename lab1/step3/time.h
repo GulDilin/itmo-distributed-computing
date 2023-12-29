@@ -18,4 +18,6 @@ void next_tick(timestamp_t other_time);
 
 int usleep(__useconds_t useconds);
 
+timestamp_t get_lamport_time();
+
 #endif  // __IFMO_DISTRIBUTED_CLASS_TIME__H

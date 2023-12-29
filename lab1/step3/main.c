@@ -1,12 +1,11 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
-// Include pre defined libraries for lab implementation
 #include "args.h"
-#include "banking.h"
 #include "channels.h"
 #include "common.h"
 #include "debug.h"
@@ -20,7 +19,7 @@ int is_parent(pid_t parent_pid) {
 
 void create_child_process(
     int proc_n, pid_t parent_pid, int local_id, executor *executor, channel **channels,
-    balance_t start_balance
+    uint8_t use_lock
 ) {
     // fork only main parent process
     if (!is_parent(parent_pid)) return;
@@ -29,7 +28,7 @@ void create_child_process(
         // forked process
         pid_t pid = getpid();
         pid_t p_pid = getppid();
-        init_executor(executor, channels, local_id, proc_n, pid, p_pid, start_balance);
+        init_executor(executor, channels, local_id, proc_n, pid, p_pid, use_lock);
         debug_print(debug_forked_fmt, pid, p_pid, local_id);
     }
 }
@@ -42,12 +41,13 @@ void create_processes(
 
     for (int local_id = 1; local_id < arguments->proc_n; ++local_id) {
         create_child_process(
-            arguments->proc_n, parent_pid, local_id, executor, channels,
-            arguments->start_balance[local_id - 1]
+            arguments->proc_n, parent_pid, local_id, executor, channels, arguments->use_lock
         );
     }
     if (is_parent(parent_pid)) {
-        init_executor(executor, channels, PARENT_ID, arguments->proc_n, getpid(), 0, 0);
+        init_executor(
+            executor, channels, PARENT_ID, arguments->proc_n, getpid(), 0, arguments->use_lock
+        );
     }
     debug_print(debug_proc_created_fmt, getpid());
 }
@@ -102,8 +102,6 @@ int main(int argc, char **argv) {
     executor executor;
     pid_t    parent_pid = getpid();
     create_processes(&arguments, parent_pid, &executor, channels);
-    // close_unused_channels(arguments.proc_n, executor.local_id, channels);
-    // if (is_parent(parent_pid)) close_unused_channels(arguments.proc_n, PARENT_ID, channels);
 
     debug_print(debug_executor_info_fmt, executor.pid, executor.parent_pid, executor.local_id);
     run_worker(&executor);

@@ -1,0 +1,65 @@
+/**
+ * @file     lock.h
+ * @Author   Gurin Evgeny and Kamyshanskaya Kseniia
+ * @brief    Structures for lock implementation
+ */
+
+#ifndef __ITMO_DISTRIBUTED_CLASS_LOCK__H
+#define __ITMO_DISTRIBUTED_CLASS_LOCK__H
+
+#include <stdint.h>
+
+#include "executor.h"
+#include "ipc.h"
+
+typedef enum {
+    LOCK_WAITING,   ///< Lock is waiting to be active
+    LOCK_ACTIVE,    ///< Lock is active now
+    LOCK_INACTIVE,  ///< message with string (doesn't include trailing '\0')
+} LockState;
+
+typedef struct {
+    local_id    s_id;    ///< Executor id that requested a lock
+    timestamp_t s_time;  ///< Local time when lock is requested
+} LockRequest;
+
+typedef struct {
+    LockRequest buffer[MAX_PROCESS_ID + 1];
+    uint16_t    size;
+} LockQueue;
+
+typedef struct {
+    LockState   state;
+    LockQueue   queue;
+    timestamp_t replied_at[MAX_PROCESS_ID + 1];
+    LockRequest active_request;
+} Lock;
+
+/**
+ * @brief      Called on request lock.
+ *
+ * @param      self  The executor
+ * @param      msg   The message
+ * @param[in]  from  The from process id
+ */
+void on_request_cs(executor* self, Message* msg, local_id from);
+
+/**
+ * @brief      Called on reply lock.
+ *
+ * @param      self  The executor
+ * @param      msg   The message
+ * @param[in]  from  The from process id
+ */
+void on_reply_cs(executor* self, Message* msg, local_id from);
+
+/**
+ * @brief      Called on release lock.
+ *
+ * @param      self  The executor
+ * @param      msg   The message
+ * @param[in]  from  The from process id
+ */
+void on_release_cs(executor* self, Message* msg, local_id from);
+
+#endif  // __ITMO_DISTRIBUTED_CLASS_LOCK__H

@@ -21,6 +21,11 @@ int init_channel(channel *channel) {
     flags |= O_NONBLOCK;
     if (fcntl(fd[0], F_SETFL, flags)) return 1;
 
+    // set non blocking flag for write pipe handler
+    flags = fcntl(fd[1], F_GETFD);
+    flags |= O_NONBLOCK;
+    if (fcntl(fd[1], F_SETFL, flags)) return 1;
+
     channel->read_h = fd[0];
     channel->write_h = fd[1];
     debug_print(debug_channel_init_fmt, fd[0], fd[1]);
@@ -34,6 +39,7 @@ int open_channel(channel **channels, local_id from, local_id dst) {
     ch->write_h = 0;
     int rc = init_channel(ch);
     debug_print(debug_channel_open_fmt, from, dst, rc, ch->read_h, ch->write_h);
+    log_pipes_msg(log_channel_opened_fmt, from, dst, ch->write_h, ch->read_h);
     return rc;
 }
 
@@ -46,7 +52,6 @@ int open_channels(int8_t proc_n, channel **channels) {
 
             // channel local_id -> other_id
             if (open_channel(channels, local_id, other_id) != 0) return 1;
-            log_channel_opened(local_id, other_id);
         }
     }
     return 0;
@@ -70,7 +75,7 @@ int close_channels(int8_t proc_n, channel **channels) {
         for (int dst = 0; dst < proc_n; ++dst) {
             if (from == dst) continue;
             close_channel(channels, from, dst);
-            log_channel_closed(from, dst);
+            log_pipes_msg(log_channel_closed_fmt, from, dst);
         }
     }
     return 0;
