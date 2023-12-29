@@ -6,6 +6,7 @@
 
 // Include pre defined libraries for lab implementation
 #include "args.h"
+#include "banking.h"
 #include "channels.h"
 #include "common.h"
 #include "debug.h"
@@ -18,7 +19,7 @@ int is_parent(pid_t parent_pid) {
 }
 
 void create_child_process(
-    int proc_n, pid_t parent_pid, int local_id, executor *executor, channel **channels
+    int proc_n, pid_t parent_pid, int local_id, executor *executor, channel **channels, balance_t start_balance
 ) {
     // fork only main parent process
     if (!is_parent(parent_pid)) return;
@@ -27,22 +28,20 @@ void create_child_process(
         // forked process
         pid_t pid = getpid();
         pid_t p_pid = getppid();
-        init_executor(executor, channels, local_id, proc_n, pid, p_pid, 30);
+        init_executor(executor, channels, local_id, proc_n, pid, p_pid, start_balance);
         debug_print(debug_forked_fmt, pid, p_pid, local_id);
     }
 }
 
-void create_processes(int proc_n, pid_t parent_pid, executor *executor, channel **channels) {
-    printf("create_processes PROC_N=%d\n", proc_n);
-
+void create_processes(arguments* arguments, pid_t parent_pid, executor *executor, channel **channels) {
     debug_print(debug_forked_fmt, getpid(), getppid(), PARENT_ID);
     debug_print(debug_start_fork_fmt, getpid());
 
-    for (int local_id = 1; local_id < proc_n; ++local_id) {
-        create_child_process(proc_n, parent_pid, local_id, executor, channels);
+    for (int local_id = 1; local_id < arguments->proc_n; ++local_id) {
+        create_child_process(arguments->proc_n, parent_pid, local_id, executor, channels, arguments->start_balance[local_id - 1]);
     }
     if (is_parent(parent_pid)) {
-        init_executor(executor, channels, PARENT_ID, proc_n, getpid(), 0, 0);
+        init_executor(executor, channels, PARENT_ID, arguments->proc_n, getpid(), 0, 0);
     }
     debug_print(debug_proc_created_fmt, getpid());
 }
@@ -96,7 +95,7 @@ int main(int argc, char **argv) {
 
     executor executor;
     pid_t    parent_pid = getpid();
-    create_processes(arguments.proc_n, parent_pid, &executor, channels);
+    create_processes(&arguments, parent_pid, &executor, channels);
     // close_unused_channels(arguments.proc_n, executor.local_id, channels);
     // if (is_parent(parent_pid)) close_unused_channels(arguments.proc_n, PARENT_ID, channels);
 

@@ -10,6 +10,9 @@
 #include <argp.h>
 #include <stdint.h>
 
+#include "banking.h"
+#include "ipc.h"
+
 /* Used by main to communicate with parse_opt. */
 typedef struct {
     uint8_t proc_n;
@@ -17,6 +20,7 @@ typedef struct {
     uint8_t debug_ipc;
     uint8_t debug_time;
     uint8_t debug_worker;
+    balance_t start_balance[MAX_PROCESS_ID + 1];
 } arguments;
 
 /**

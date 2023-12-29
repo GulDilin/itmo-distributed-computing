@@ -1,23 +1,20 @@
 #include <stdint.h>
-#include <stdio.h>
 #include <unistd.h>
 
 #include "banking.h"
-
-int usleep(__useconds_t useconds);
-
 #include "channels.h"
 #include "debug.h"
 #include "executor.h"
 #include "ipc.h"
+#include "ipc_util.h"
 #include "time.h"
 
 size_t compute_msg_size(const Message *msg) {
     return sizeof(MessageHeader) + msg->s_header.s_payload_len;
 }
 
-char *get_msg_type_text(const Message *msg) {
-    switch (msg->s_header.s_type) {
+char *get_msg_type_text(const MessageType type) {
+    switch (type) {
         case STARTED:
             return "STARTED";
         case DONE:
@@ -48,13 +45,13 @@ int send(void *self, local_id dst, const Message *msg) {
     int       bytes = write(channel_h, msg, msg_size);
     debug_ipc_print(
         debug_ipc_send_fmt, get_lamport_time(), executor->local_id, executor->local_id, dst,
-        get_msg_type_text(msg), msg->s_header.s_local_time, bytes, channel_h
+        get_msg_type_text(msg->s_header.s_type), msg->s_header.s_local_time, bytes, channel_h
     );
     int rc = bytes > 0 ? 0 : 1;
     if (rc != 0) {
         debug_ipc_print(
             debug_ipc_send_failed_fmt, get_lamport_time(), executor->local_id, executor->local_id,
-            dst, get_msg_type_text(msg), msg->s_header.s_local_time
+            dst, get_msg_type_text(msg->s_header.s_type), msg->s_header.s_local_time
         );
     }
     return rc;
@@ -64,7 +61,7 @@ int send_multicast(void *self, const Message *msg) {
     executor *executor = self;
     debug_ipc_print(
         debug_ipc_send_multicast_fmt, get_lamport_time(), executor->local_id, executor->local_id,
-        get_msg_type_text(msg), msg->s_header.s_local_time
+        get_msg_type_text(msg->s_header.s_type), msg->s_header.s_local_time
     );
     int rc = 0;
     for (int dst = 0; dst < executor->proc_n; ++dst) {
@@ -86,7 +83,7 @@ int receive(void *self, local_id from, Message *msg) {
     next_tick(msg->s_header.s_local_time);
     debug_ipc_print(
         debug_ipc_receive_fmt, get_lamport_time(), executor->local_id, executor->local_id, from,
-        get_msg_type_text(msg), msg->s_header.s_local_time, prev_time, bytes
+        get_msg_type_text(msg->s_header.s_type), msg->s_header.s_local_time, prev_time, bytes
     );
     return 0;
 }

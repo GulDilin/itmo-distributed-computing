@@ -76,13 +76,15 @@ static const char* const debug_channel_open_start_fmt = "open_channels start. pr
 static const char* const debug_channel_set_fmt = "[local_id=%2d] ch set %c %d -> %d: %d\n";
 
 static const char* const debug_ipc_receive_fmt
-    = "%2d: [local_id=%2d] recv %2d <- %2d <type=%10s> [msg_time=%2d] [prev_time=%2d] [bytes=%d]\n";
+    = "%2d: [local_id=%2d] recv %2d <- %2d <type=%15s> [msg_time=%2d] [prev_time=%2d] [bytes=%d]\n";
 static const char* const debug_ipc_send_fmt
-    = "%2d: [local_id=%2d] send %2d -> %2d <type=%10s> [msg_time=%2d] [bytes=%d] [channel_h=%d]\n";
+    = "%2d: [local_id=%2d] send %2d -> %2d <type=%15s> [msg_time=%2d] [bytes=%d] [channel_h=%d]\n";
 static const char* const debug_ipc_send_multicast_fmt
-    = "%2d: [local_id=%2d] send %2d ->  * <type=%10s> [msg_time=%2d]\n";
+    = "%2d: [local_id=%2d] send %2d ->  * <type=%15s> [msg_time=%2d]\n";
 static const char* const debug_ipc_wait_msg_fmt
-    = "%2d: [local_id=%2d] Wait for message [from=%2d]\n";
+    = "%2d: [local_id=%2d] Wait for message <type=%15s> [from=%2d]\n";
+static const char* const debug_ipc_await_msg_fmt
+    = "%2d: [local_id=%2d] Awaited message <type=%s> [from=%2d]\n";
 static const char* const debug_ipc_send_failed_fmt
     = "%2d: [local_id=%2d] send failed %2d -> %2d <type=%10s> [msg_time=%2d]\n";
 
@@ -113,7 +115,11 @@ static const char* const debug_worker_set_history_fmt
 static const char* const debug_worker_update_history_fmt
     = "%2d: [local_id=%2d] History update balance [from_ts=%2d] [to_ts=%2d] [old_balance=$%d] "
       "$%d\n";
+static const char* const debug_worker_on_hist_fmt = "%2d: [local_id=%2d] got history [from=%2d] [len=%d]\n";
+static const char* const debug_worker_fill_trailling_history_fmt = "fill_trailling_history [for=%2d]\n";
+static const char* const debug_worker_stop_fmt = "%2d: [local_id=%2d] STOP\n";
 
-static const char* const debug_time_next_tick_fmt = "%2d: [other_time=%2d] result: %2d\n";
+
+static const char* const debug_time_next_tick_fmt = "%2d: next_tick [other_time=%2d] result: %2d\n";
 
 #endif  // __ITMO_DISTRIBUTED_CLASS_DEBUG__H

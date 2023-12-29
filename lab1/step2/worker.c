@@ -1,5 +1,3 @@
-#include "worker.h"
-
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,6 +12,7 @@
 #include "logger.h"
 #include "pa2345.h"
 #include "time.h"
+#include "worker.h"
 
 void account_start(executor *self) {
     log_events_msg(
@@ -138,6 +137,7 @@ void transfer(void *parent_data, local_id src, local_id dst, balance_t amount) {
 
 void on_stop(executor *self, Message *msg) {
     self->is_running = 0;
+    debug_worker_print(debug_worker_stop_fmt, self->local_id);
 }
 
 void on_message(executor *self, Message *msg) {
@@ -176,6 +176,7 @@ void account_worker(executor *self) {
 void on_balance_history(executor *self, Message *msg, local_id from) {
     BalanceHistory history;
     deserialize_struct(msg, &history, sizeof(BalanceHistory));
+    debug_worker_print(debug_worker_on_hist_fmt, get_lamport_time(), self->local_id, from, history.s_history_len);
     // from - 1 because children id starts from 1
     self->bank_account.all_history->s_history[from - 1] = history;
 }
@@ -209,9 +210,8 @@ timestamp_t get_all_history_max_time(AllHistory *all_history) {
 void fill_trailling_history(AllHistory *all_history) {
     timestamp_t max_time = get_all_history_max_time(all_history);
 
-    printf("max_time=%d\n", max_time);
-
     for (int acc_i = 0; acc_i < all_history->s_history_len; ++acc_i) {
+        debug_worker_print(debug_worker_fill_trailling_history_fmt, acc_i + 1);
         BalanceHistory *acc_history = &all_history->s_history[acc_i];
         timestamp_t     last_history_t = acc_history->s_history_len - 1;
         acc_history->s_history_len = max_time + 1;
@@ -263,6 +263,7 @@ void init_executor(
     executor->proc_n = proc_n;
     executor->pid = pid;
     executor->parent_pid = p_pid;
+    executor->is_running = 1;
 
     executor->bank_account.balance = start_balance;
     if (local_id == PARENT_ID) {

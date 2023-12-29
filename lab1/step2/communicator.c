@@ -10,6 +10,7 @@
 #include "channels.h"
 #include "debug.h"
 #include "ipc.h"
+#include "ipc_util.h"
 #include "logger.h"
 #include "pa2345.h"
 #include "time.h"
@@ -114,11 +115,13 @@ int wait_receive_all_child_msg_by_type(executor *self, MessageType type, on_mess
 int wait_receive_msg_by_type(executor *self, MessageType type, local_id from) {
     Message  msg;
     uint16_t received = 0;
-    debug_ipc_print(debug_ipc_wait_msg_fmt, get_lamport_time(), self->local_id, from);
+    debug_ipc_print(debug_ipc_wait_msg_fmt, get_lamport_time(), self->local_id, get_msg_type_text(type), from);
     while (!received) {
         int rc = receive(self, from, &msg);
         if (rc == 0 && msg.s_header.s_type == type) received = 1;
+        usleep(SLEEP_RECEIVE_USEC);
     }
+    debug_ipc_print(debug_ipc_await_msg_fmt, get_lamport_time(), self->local_id, get_msg_type_text(type), from);
     return 0;
 }
 

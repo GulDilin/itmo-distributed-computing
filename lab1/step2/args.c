@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define MAX_BALANCE 65535
+
 const char *argp_program_version = "pa1";
 const char *argp_program_bug_address = "zhenyagurin@gmail.com";
 
@@ -30,6 +32,8 @@ static const char *argp_err_key_nan_fmt = "-%c is not a number. See --help for m
 static const char *arg_err_key_required_fmt = "-%c is required. See --help for more information";
 static const char *arg_err_key_range_fmt
     = "-%c value is not in correct range. See --help for more information";
+static const char *arg_err_too_many_args_fmt = "Too many arguments for start balance. Should be same as number of processes. See --help for more information";
+static const char *arg_err_not_enough_args_fmt = "Not enough arguments for start balance. Should be same as number of processes. See --help for more information";
 
 /**
  * @brief      Parse a single option.
@@ -89,11 +93,41 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
             arguments->debug_worker = 1;
             break;
 
+        case ARGP_KEY_ARG:
+            {
+            if (state->arg_num >= arguments->proc_n) {
+                argp_failure(state, 1, 0, "%s", arg_err_too_many_args_fmt);
+                return ARGP_ERR_UNKNOWN;
+            }
+            char    *endptr = NULL;
+            long int start_balance = strtol(arg, &endptr, 10);
+            if (*endptr != 0) {
+                // non-number letters after number
+                argp_failure(state, 1, 0, argp_err_key_nan_fmt, ' ');
+                return ARGP_ERR_UNKNOWN;
+            }
+            if (start_balance > MAX_BALANCE || start_balance < 1) {
+                argp_failure(state, 1, 0, arg_err_key_range_fmt, ' ');
+                return ARGP_ERR_UNKNOWN;
+            }
+
+            arguments->start_balance[state->arg_num] = (uint16_t)start_balance;
+            break;
+        }
+
         case ARGP_KEY_END:
             // check if not enough args
             if (arguments->proc_n == 0) {
                 argp_failure(state, 1, 0, arg_err_key_required_fmt, 'p');
                 exit(ARGP_ERR_UNKNOWN);
+            }
+            if (state->arg_num >= arguments->proc_n) {
+                argp_failure(state, 1, 0, "%s", arg_err_too_many_args_fmt);
+                return ARGP_ERR_UNKNOWN;
+            }
+            if (state->arg_num < arguments->proc_n - 1) {
+                argp_failure(state, 1, 0, "%s", arg_err_not_enough_args_fmt);
+                return ARGP_ERR_UNKNOWN;
             }
 
         default:
