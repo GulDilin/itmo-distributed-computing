@@ -98,7 +98,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
             break;
 
         case ARGP_KEY_ARG: {
-            if (arguments->proc_n && state->arg_num >= arguments->proc_n) {
+            if (state->arg_num >= arguments->proc_n) {
                 argp_failure(state, 1, 0, "%s", arg_err_too_many_args_fmt);
                 return ARGP_ERR_UNKNOWN;
             }

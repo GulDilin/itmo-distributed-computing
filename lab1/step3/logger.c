@@ -84,3 +84,11 @@ int log_events_msg(const char *fmt, ...) {
     va_end(args);
     return rc;
 }
+
+int log_channel_opened(int from, int dst) {
+    return log_pipes_msg(log_channel_opened_fmt, from, dst);
+}
+
+int log_channel_closed(int from, int dst) {
+    return log_pipes_msg(log_channel_closed_fmt, from, dst);
+}
