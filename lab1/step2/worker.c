@@ -217,7 +217,7 @@ void fill_trailling_history(AllHistory *all_history) {
         acc_history->s_history_len = max_time + 1;
         BalanceState *last_state = &acc_history->s_history[last_history_t];
 
-        for (timestamp_t history_t = last_history_t + 1; history_t < max_time; ++history_t) {
+        for (timestamp_t history_t = last_history_t + 1; history_t < acc_history->s_history_len; ++history_t) {
             BalanceState state = {
                 .s_time = history_t, .s_balance = last_state->s_balance, .s_balance_pending_in = 0
             };
