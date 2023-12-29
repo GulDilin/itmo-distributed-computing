@@ -45,14 +45,21 @@ void print_reply_at(const executor* self) {
 
 void push_request(const executor* self, LockRequest* req) {
     uint8_t idx = 0;  // index of item where to insert new request
-    while (lock.queue.size > 0 && idx < lock.queue.size
-           && lock.queue.buffer[idx].s_time <= req->s_time
-           && lock.queue.buffer[idx].s_id < req->s_id) {
-        idx++;
+    if (lock.queue.size > 0) {
+        while (idx < lock.queue.size && lock.queue.buffer[idx].s_time < req->s_time) { idx++; }
+        while (idx < lock.queue.size && lock.queue.buffer[idx].s_time == req->s_time
+               && lock.queue.buffer[idx].s_id < req->s_id) {
+            idx++;
+        }
     }
+    // while (lock.queue.size > 0 && idx < lock.queue.size
+    //        && lock.queue.buffer[idx].s_time <= req->s_time
+    //        && lock.queue.buffer[idx].s_id < req->s_id) {
+    //     idx++;
+    // }
     print_queue(self);
     debug_worker_print(
-        "[local_id=%d] push req [%d, %d] to idx %d\n", self->local_id, req->s_time, req->s_id
+        "[local_id=%d] push req [%d, %d] to idx %d\n", self->local_id, req->s_time, req->s_id, idx
     );
     /*
      * Move end part of queue if insert index is not the last
@@ -145,7 +152,7 @@ void on_release_cs(executor* self, Message* msg, local_id from) {
 }
 
 int request_cs(const void* self) {
-    const executor* s_executor = self;
+    executor* s_executor = (executor*)self;
     if (lock.state == LOCK_ACTIVE) return 0;
     if (lock.state == LOCK_INACTIVE) {
         clean_replied(self);
@@ -164,7 +171,7 @@ int request_cs(const void* self) {
 }
 
 int release_cs(const void* self) {
-    const executor* s_executor = self;
+    executor* s_executor = (executor*)self;
     if (lock.state == LOCK_WAITING) return 1;
     if (lock.state == LOCK_INACTIVE) return 0;
     if (lock.state == LOCK_ACTIVE) {
@@ -173,4 +180,5 @@ int release_cs(const void* self) {
         lock.state = LOCK_INACTIVE;
         debug_worker_print(debug_lock_released_fmt, get_lamport_time(), s_executor->local_id);
     }
+    return 0;
 }

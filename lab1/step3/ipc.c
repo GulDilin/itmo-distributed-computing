@@ -95,7 +95,7 @@ int receive_any(void *self, Message *msg) {
     int       received_n = 0;
     local_id  local_id = 0;
     while (received_n == 0) {
-        if (executor->proc_n - 1) usleep(SLEEP_RECEIVE_USEC);
+        // if (executor->proc_n - 1) usleep(SLEEP_RECEIVE_USEC);
         local_id = (local_id + 1) % executor->proc_n;
         if (executor->local_id == local_id) continue;
         int rc = receive(executor, local_id, msg);

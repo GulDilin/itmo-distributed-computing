@@ -1,11 +1,10 @@
 #include <stdarg.h>
 #include <stdio.h>
-#include <stdlib.h>
 
-static int is_debug_enabled = 0;
-static int is_debug_ipc_enabled = 0;
-static int is_debug_time_enabled = 0;
-static int is_debug_worker_enabled = 0;
+static int is_debug_enabled = 1;
+static int is_debug_ipc_enabled = 1;
+static int is_debug_time_enabled = 1;
+static int is_debug_worker_enabled = 1;
 
 void set_debug(int is_enabled) {
     is_debug_enabled = is_enabled;

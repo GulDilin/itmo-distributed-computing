@@ -88,15 +88,11 @@ void child_done(executor *self) {
 
 void do_main_work(executor *self, int *loop_idx) {
     const int MAX_ITER_N = self->local_id * 5;
-    if (is_self_done(self)) return;
-    if (*loop_idx > MAX_ITER_N) {
-        child_done(self);
-        return;
-    };
-    char str[STR_BUF_SZ];
+    char      str[STR_BUF_SZ];
     snprintf(str, STR_BUF_SZ, log_loop_operation_fmt, self->local_id, *loop_idx, MAX_ITER_N);
     print(str);
     *loop_idx += 1;
+    if (*loop_idx >= MAX_ITER_N) child_done(self);
 }
 
 void child_worker(executor *self) {
@@ -104,7 +100,8 @@ void child_worker(executor *self) {
     int main_loop_idx = 1;
     debug_worker_print(debug_worker_start_loop_fmt, get_lamport_time(), self->local_id);
     while (!is_all_done(self)) {
-        if (receive_any_cb(self, on_message) != 0) usleep(SLEEP_RECEIVE_USEC);
+        receive_any_cb(self, on_message);
+        // if (receive_any_cb(self, on_message) != 0) usleep(SLEEP_RECEIVE_USEC);
         if (is_self_done(self)) continue;
         if (self->use_lock && request_cs(self) != 0) continue;
         do_main_work(self, &main_loop_idx);
