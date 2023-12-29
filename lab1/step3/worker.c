@@ -102,11 +102,13 @@ void child_worker(executor *self) {
     while (!is_all_done(self)) {
         receive_any_cb(self, on_message);
         // if (receive_any_cb(self, on_message) != 0) usleep(SLEEP_RECEIVE_USEC);
-        if (is_self_done(self)) continue;
-        if (self->use_lock && request_cs(self) != 0) continue;
-        do_main_work(self, &main_loop_idx);
-        if (self->use_lock) release_cs(self);
+        if (!is_self_done(self)) {
+            if (self->use_lock && request_cs(self) != 0) continue;
+            do_main_work(self, &main_loop_idx);
+            if (self->use_lock) release_cs(self);
+        }
     }
+    while (receive_any_cb(self, NULL) == 0) {}
 }
 
 void parent_worker(executor *self) {
@@ -120,6 +122,7 @@ void parent_worker(executor *self) {
     wait_receive_all_child_msg_by_type(self, DONE, NULL);
     log_events_msg(log_received_all_done_fmt, get_lamport_time(), self->local_id);
     log_events_msg(log_done_fmt, get_lamport_time(), self->local_id, 0);
+    while (receive_any_cb(self, NULL) == 0) {}
 }
 
 void run_worker(executor *self) {
@@ -140,7 +143,11 @@ void init_executor(
 
     init_lock(executor);
 
-    for (int i = 0; i <= MAX_PROCESS_ID; ++i) { executor->proc_done[i] = 0; }
+    for (int i = 0; i <= MAX_PROCESS_ID; ++i) {
+        executor->proc_done[i] = 0;
+        executor->last_recv_at[i] = 0;
+        executor->last_send_at[i] = 0;
+    }
 
     set_executor_channels(proc_n, executor, channels);
     close_unused_channels(proc_n, local_id, channels);

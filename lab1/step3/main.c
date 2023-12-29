@@ -107,5 +107,6 @@ int main(int argc, char **argv) {
     run_worker(&executor);
 
     cleanup(arguments.proc_n, channels, &executor);
+    debug_print(debug_main_finish_fmt, executor.local_id);
     return 0;
 }

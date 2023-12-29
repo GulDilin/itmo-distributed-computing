@@ -42,7 +42,9 @@ int send(void *self, local_id dst, const Message *msg) {
     executor *executor = self;
     uint16_t  msg_size = compute_msg_size(msg);
     channel_h channel_h = get_channel_write_h(executor, dst);
-    int       bytes = write(channel_h, msg, msg_size);
+    int       bytes = 0;
+    while ((bytes = write(channel_h, msg, msg_size)) < 1) {}
+    executor->last_send_at[dst] = msg->s_header.s_local_time;
     debug_ipc_print(
         debug_ipc_send_fmt, get_lamport_time(), executor->local_id, executor->local_id, dst,
         get_msg_type_text(msg->s_header.s_type), msg->s_header.s_local_time, bytes, channel_h
@@ -83,6 +85,7 @@ int receive(void *self, local_id from, Message *msg) {
         return 1;
     timestamp_t prev_time = get_lamport_time();
     next_tick(msg->s_header.s_local_time);
+    executor->last_recv_at[from] = msg->s_header.s_local_time;
     debug_ipc_print(
         debug_ipc_receive_fmt, get_lamport_time(), executor->local_id, executor->local_id, from,
         get_msg_type_text(msg->s_header.s_type), msg->s_header.s_local_time, prev_time, bytes

@@ -52,11 +52,6 @@ void push_request(const executor* self, LockRequest* req) {
             idx++;
         }
     }
-    // while (lock.queue.size > 0 && idx < lock.queue.size
-    //        && lock.queue.buffer[idx].s_time <= req->s_time
-    //        && lock.queue.buffer[idx].s_id < req->s_id) {
-    //     idx++;
-    // }
     print_queue(self);
     debug_worker_print(
         "[local_id=%d] push req [%d, %d] to idx %d\n", self->local_id, req->s_time, req->s_id, idx
@@ -124,11 +119,18 @@ int is_all_replied_after_request(const executor* self) {
     print_reply_at(self);
     for (int i = 1; i < self->proc_n; ++i) {
         if (i == self->local_id) continue;
-        if (lock.replied_at[i] <= lock.active_request.s_time) return 0;
+        if (self->last_recv_at[i] <= lock.active_request.s_time) return 0;
     }
     return 1;
 }
 
+/**
+ * @brief      Determines ability to activate lock.
+ *
+ * @param[in]  self  The object
+ *
+ * @return     True if able to activate lock, False otherwise.
+ */
 int can_activate_lock(const executor* self) {
     if (lock.state != LOCK_WAITING) return 0;
     if (lock.queue.size < 1) return 0;
@@ -144,7 +146,7 @@ void on_reply_cs(executor* self, Message* msg, local_id from) {
 void on_request_cs(executor* self, Message* msg, local_id from) {
     LockRequest req = {.s_id = from, .s_time = msg->s_header.s_local_time};
     push_request(self, &req);
-    send_reply_cs_msg(self, from);
+    if (self->last_send_at[from] <= req.s_time) send_reply_cs_msg(self, from);
 }
 
 void on_release_cs(executor* self, Message* msg, local_id from) {

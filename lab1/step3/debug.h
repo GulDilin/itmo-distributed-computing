@@ -116,6 +116,7 @@ static const char* const debug_start_fork_fmt = "[pid=%4d] Start create processe
 static const char* const debug_proc_created_fmt = "[pid=%4d] Processes created\n";
 static const char* const debug_malloc_ch_fin_fmt = "malloc channels finished [channels=%p]\n";
 static const char* const debug_main_start_fmt = "Start %d\n";
+static const char* const debug_main_finish_fmt = "Finish %d\n";
 static const char* const debug_main_args_parse_fmt = "Parse args %d\n";
 static const char* const debug_main_args_parsed_fmt = "Parsed args %d. processes: %d\n";
 static const char* const debug_executor_info_fmt = "Executor pid=%4d parent=%4d local_id=%2d\n";
