@@ -69,10 +69,6 @@ void init(int proc_n, channel ***channels) {
 }
 
 void cleanup(int proc_n, channel **channels, executor *executor) {
-    if (executor->local_id == PARENT_ID) {
-        // wait all child processes
-        while (wait(NULL) > 0) {}
-    }
     close_channels(proc_n, channels);
     cleanup_executor(executor);
     for (int i = 0; i < proc_n; ++i) free(channels[i]);
@@ -106,7 +102,12 @@ int main(int argc, char **argv) {
     debug_print(debug_executor_info_fmt, executor.pid, executor.parent_pid, executor.local_id);
     run_worker(&executor);
 
-    cleanup(arguments.proc_n, channels, &executor);
-    debug_print(debug_main_finish_fmt, executor.local_id);
+    if (is_parent(parent_pid)) {
+        // wait all child processes
+        while (wait(NULL) > 0) {}
+        cleanup(arguments.proc_n, channels, &executor);
+    }
+    debug_worker_print(debug_main_finish_fmt, executor.local_id);
+    fflush(stdout);
     return 0;
 }

@@ -64,6 +64,7 @@ int get_debug_worker();
  * @param[in]  <unnamed>  args
  */
 void debug_print(const char* fmt, ...);
+// #define debug_print(fmt, ...) {}
 
 /**
  * @brief      Print message if debug IPC is enabled
@@ -72,6 +73,7 @@ void debug_print(const char* fmt, ...);
  * @param[in]  <unnamed>  args
  */
 void debug_ipc_print(const char* fmt, ...);
+// #define debug_ipc_print(fmt, ...) {}
 
 /**
  * @brief      Print message if debug TIME is enabled
@@ -80,6 +82,7 @@ void debug_ipc_print(const char* fmt, ...);
  * @param[in]  <unnamed>  args
  */
 void debug_time_print(const char* fmt, ...);
+// #define debug_time_print(fmt, ...) {}
 
 /**
  * @brief      Print message if debug WORKER is enabled
@@ -88,6 +91,7 @@ void debug_time_print(const char* fmt, ...);
  * @param[in]  <unnamed>  args
  */
 void debug_worker_print(const char* fmt, ...);
+// #define debug_worker_print(fmt, ...) {}
 
 static const char* const debug_channel_init_fmt = "init_channel read_h=%3d write_h=%3d\n";
 static const char* const debug_channel_open_fmt

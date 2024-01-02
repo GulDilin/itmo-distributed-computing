@@ -49,6 +49,7 @@ void on_done(executor *self, Message *msg, local_id from) {
     set_done(self, from);
     if (is_all_done(self)) {
         log_events_msg(log_received_all_done_fmt, get_lamport_time(), self->local_id);
+        self->all_done = 1;
     }
 }
 
@@ -79,7 +80,6 @@ void child_start(executor *self) {
 }
 
 void child_done(executor *self) {
-    set_done(self, self->local_id);
     log_events_msg(log_done_fmt, get_lamport_time(), self->local_id, 0);
     send_done_msg_multicast(self);
 }
@@ -92,23 +92,38 @@ void do_main_work(executor *self, int *loop_idx) {
     snprintf(str, STR_BUF_SZ, log_loop_operation_fmt, self->local_id, *loop_idx, MAX_ITER_N);
     print(str);
     *loop_idx += 1;
-    if (*loop_idx >= MAX_ITER_N) child_done(self);
+    if (*loop_idx >= MAX_ITER_N) {
+        set_done(self, self->local_id);
+        self->is_self_done = 1;
+    }
 }
+
+#define WORKER_SLEEP 10000
 
 void child_worker(executor *self) {
     child_start(self);
     int main_loop_idx = 1;
+    int done_once = 0;
     debug_worker_print(debug_worker_start_loop_fmt, get_lamport_time(), self->local_id);
-    while (!is_all_done(self)) {
+    while (!self->all_done) {
         receive_any_cb(self, on_message);
         // if (receive_any_cb(self, on_message) != 0) usleep(SLEEP_RECEIVE_USEC);
-        if (!is_self_done(self)) {
+        if (!self->is_self_done) {
             if (self->use_lock && request_cs(self) != 0) continue;
             do_main_work(self, &main_loop_idx);
             if (self->use_lock) release_cs(self);
         }
+        if (self->is_self_done && !done_once) {
+            child_done(self);
+            done_once = 1;
+            if (is_all_done(self)) {
+                log_events_msg(log_received_all_done_fmt, get_lamport_time(), self->local_id);
+                self->all_done = 1;
+            }
+        }
+        usleep(WORKER_SLEEP);
     }
-    while (receive_any_cb(self, NULL) == 0) {}
+    while (receive_any_cb(self, on_message) == 0) {}
 }
 
 void parent_worker(executor *self) {
@@ -140,6 +155,8 @@ void init_executor(
     executor->pid = pid;
     executor->parent_pid = p_pid;
     executor->use_lock = use_lock;
+    executor->all_done = 0;
+    executor->is_self_done = 0;
 
     init_lock(executor);
 

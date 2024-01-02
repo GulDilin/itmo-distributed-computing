@@ -42,9 +42,7 @@ int send(void *self, local_id dst, const Message *msg) {
     executor *executor = self;
     uint16_t  msg_size = compute_msg_size(msg);
     channel_h channel_h = get_channel_write_h(executor, dst);
-    int       bytes = 0;
-    while ((bytes = write(channel_h, msg, msg_size)) < 1) {}
-    executor->last_send_at[dst] = msg->s_header.s_local_time;
+    int       bytes = write(channel_h, msg, msg_size);
     debug_ipc_print(
         debug_ipc_send_fmt, get_lamport_time(), executor->local_id, executor->local_id, dst,
         get_msg_type_text(msg->s_header.s_type), msg->s_header.s_local_time, bytes, channel_h
@@ -55,6 +53,8 @@ int send(void *self, local_id dst, const Message *msg) {
             debug_ipc_send_failed_fmt, get_lamport_time(), executor->local_id, executor->local_id,
             dst, get_msg_type_text(msg->s_header.s_type), msg->s_header.s_local_time
         );
+    } else {
+        executor->last_send_at[dst] = msg->s_header.s_local_time;
     }
     return rc;
 }
@@ -69,7 +69,10 @@ int send_multicast(void *self, const Message *msg) {
     for (int dst = 0; dst < executor->proc_n; ++dst) {
         if (executor->local_id == dst) continue;
         rc = send(executor, dst, msg);
-        if (rc != 0) break;
+        if (rc != 0) {
+            debug_ipc_print("[local_id=%d] send_multicast failed", executor->local_id);
+            break;
+        }
     }
     return rc;
 }

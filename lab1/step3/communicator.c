@@ -123,14 +123,15 @@ int wait_receive_all_child_msg_by_type(executor *self, MessageType type, on_mess
 
 int receive_any_cb(executor *self, on_message_t on_message) {
     Message msg;
+    int     received = 0;
     for (local_id from = 0; from < self->proc_n; ++from) {
         if (self->local_id == from) continue;
         if (receive(self, from, &msg) == 0) {
             if (on_message != NULL) on_message(self, &msg, from);
-            return 0;
+            received++;
         }
     }
-    return 1;
+    return received > 0 ? 0 : 1;
 }
 
 int wait_receive_msg_by_type(executor *self, MessageType type, local_id from) {

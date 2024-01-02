@@ -106,6 +106,6 @@ int main(int argc, char **argv) {
     debug_print(debug_executor_info_fmt, executor.pid, executor.parent_pid, executor.local_id);
     run_worker(&executor);
 
-    cleanup(arguments.proc_n, channels, &executor);
+    if (is_parent(parent_pid)) { cleanup(arguments.proc_n, channels, &executor); }
     return 0;
 }

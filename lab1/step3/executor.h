@@ -19,6 +19,8 @@ typedef struct {
     channel_h  *ch_write;  ///< Array of writing pipe handlers
     uint8_t     proc_n;    ///< Number of processes
     uint8_t     proc_done[MAX_PROCESS_ID + 1];  ///< Info which processes are done
+    uint8_t     is_self_done;                   ///< Info which processes are done
+    uint8_t     all_done;                       ///< Info which processes are done
     uint8_t     use_lock;                       ///< Info which processes are done
     pid_t       parent_pid;                     ///< Parend process id
     pid_t       pid;                            ///< Executor process id
