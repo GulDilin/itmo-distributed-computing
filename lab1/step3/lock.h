@@ -18,14 +18,20 @@ typedef enum {
     LOCK_INACTIVE,  ///< message with string (doesn't include trailing '\0')
 } LockState;
 
+typedef enum {
+    LOCK_REPLY_SENT = 0,
+    LOCK_REPLY_PENDING = 1,
+} LockReplyOutState;
+
 typedef struct {
     local_id    s_id;    ///< Executor id that requested a lock
     timestamp_t s_time;  ///< Local time when lock is requested
 } LockRequest;
 
 typedef struct {
-    LockRequest buffer[MAX_PROCESS_ID + 1];
-    uint16_t    size;
+    LockRequest       buffer[MAX_PROCESS_ID + 1];
+    LockReplyOutState deffered[MAX_PROCESS_ID + 1];
+    uint16_t          size;
 } LockQueue;
 
 typedef struct {

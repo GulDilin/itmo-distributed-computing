@@ -18,12 +18,12 @@ void print_queue(const executor* self) {
     char buffer[256];
     int  printed = 0;
     printed += sprintf(
-        buffer, "[local_id=%d] [active_t=%2d] queue (%2d): ", self->local_id,
-        lock.active_request.s_time, lock.queue.size
+        buffer, debug_lock_queue_fmt, self->local_id, lock.active_request.s_time, lock.queue.size
     );
     for (int i = 0; i < lock.queue.size; ++i) {
         printed += sprintf(
-            buffer + printed, "[%d, %d]", lock.queue.buffer[i].s_time, lock.queue.buffer[i].s_id
+            buffer + printed, debug_lock_queue_part_fmt, lock.queue.buffer[i].s_time,
+            lock.queue.buffer[i].s_id
         );
     }
     printf("%s\n", buffer);
@@ -33,10 +33,7 @@ void print_reply_at(const executor* self) {
     if (!get_debug()) return;
     char buffer[256];
     int  printed = 0;
-    printed += sprintf(
-        buffer, "[local_id=%d] [active_t=%2d] reply_at: ", self->local_id,
-        lock.active_request.s_time
-    );
+    printed += sprintf(buffer, debug_lock_reply_at_fmt, self->local_id, lock.active_request.s_time);
     for (int i = 1; i < self->proc_n; ++i) {
         printed += sprintf(buffer + printed, "%2d | ", lock.replied_at[i]);
     }
@@ -139,18 +136,59 @@ int can_activate_lock(const executor* self) {
     return 1;
 }
 
-void on_reply_cs(executor* self, Message* msg, local_id from) {
-    lock.replied_at[from] = msg->s_header.s_local_time;
+/**
+ * @brief      Determines if other lock request has priority.
+ *
+ * @param      orig_req  The original request
+ * @param      oth_req   The oth request
+ *
+ * @return     True if other lock request has priority, False otherwise.
+ */
+int has_other_lock_req_priority(LockRequest* orig_req, LockRequest* oth_req) {
+    if (oth_req->s_time < orig_req->s_time) return 1;
+    return (oth_req->s_time == orig_req->s_time) && (oth_req->s_id < orig_req->s_id);
+}
+
+void defer_reply(executor* self, local_id dst) {
+    lock.queue.deffered[dst] = LOCK_REPLY_PENDING;
+    debug_worker_print(debug_lock_defered_reply_fmt, get_lamport_time(), self->local_id);
 }
 
 void on_request_cs(executor* self, Message* msg, local_id from) {
     LockRequest req = {.s_id = from, .s_time = msg->s_header.s_local_time};
-    push_request(self, &req);
-    if (self->last_send_at[from] <= req.s_time) send_reply_cs_msg(self, from);
+    switch (lock.state) {
+        case LOCK_ACTIVE:
+            defer_reply(self, from);
+            debug_worker_print(debug_lock_wait_fmt, get_lamport_time(), self->local_id);
+            return;
+        case LOCK_WAITING: {
+            if (has_other_lock_req_priority(&lock.active_request, &req)) {
+                send_reply_cs_msg(self, from);
+            } else {
+                defer_reply(self, from);
+            }
+            return;
+        }
+        case LOCK_INACTIVE:
+            send_reply_cs_msg(self, from);
+            return;
+    }
+}
+
+void on_reply_cs(executor* self, Message* msg, local_id from) {
+    // do nothing
 }
 
 void on_release_cs(executor* self, Message* msg, local_id from) {
     pop_request(self, from);
+}
+
+void send_deffered(executor* self) {
+    for (local_id s_id = 1; s_id <= MAX_PROCESS_ID; ++s_id) {
+        if (lock.queue.deffered[s_id] == LOCK_REPLY_SENT) continue;
+        send_reply_cs_msg(self, s_id);
+        lock.queue.deffered[s_id] = LOCK_REPLY_SENT;
+    }
 }
 
 int request_cs(const void* self) {
@@ -162,11 +200,11 @@ int request_cs(const void* self) {
         lock.state = LOCK_WAITING;
         LockRequest req = {.s_id = s_executor->local_id, .s_time = get_lamport_time()};
         lock.active_request = req;
-        push_request(s_executor, &req);
-    }
-    if (can_activate_lock(s_executor)) {
+        debug_worker_print(debug_lock_wait_fmt, get_lamport_time(), s_executor->local_id);
+        wait_receive_all_child_msg_by_type(s_executor, CS_REPLY, on_message);
         lock.state = LOCK_ACTIVE;
         debug_worker_print(debug_lock_acquire_fmt, get_lamport_time(), s_executor->local_id);
+        // push_request(s_executor, &req);
         return 0;
     }
     return 1;
@@ -177,8 +215,8 @@ int release_cs(const void* self) {
     if (lock.state == LOCK_WAITING) return 1;
     if (lock.state == LOCK_INACTIVE) return 0;
     if (lock.state == LOCK_ACTIVE) {
-        send_release_cs_msg_multicast(s_executor);
-        pop_request(s_executor, s_executor->local_id);
+        send_deffered(s_executor);
+        // pop_request(s_executor, s_executor->local_id);
         lock.state = LOCK_INACTIVE;
         debug_worker_print(debug_lock_released_fmt, get_lamport_time(), s_executor->local_id);
     }

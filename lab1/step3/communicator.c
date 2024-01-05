@@ -108,15 +108,13 @@ int wait_receive_all_child_msg_by_type(executor *self, MessageType type, on_mess
     Message  msg;
     local_id from = 0;
     while (!is_received_all_child(self, received)) {
-        // if (from == self->proc_n - 1) usleep(SLEEP_RECEIVE_USEC);
+        if (from == self->proc_n - 1) usleep(SLEEP_RECEIVE_USEC);
         from = (from + 1) % self->proc_n;
         if (self->local_id == from) continue;
         if (is_received_msg_from(self, received, from)) continue;
-        int rc = receive(self, from, &msg);
-        if (rc == 0 && msg.s_header.s_type == type) {
-            if (on_message != NULL) on_message(self, &msg, from);
-            mark_received(received, from);
-        }
+        if (receive(self, from, &msg) != 0) continue;
+        if (msg.s_header.s_type == type) mark_received(received, from);
+        if (on_message != NULL) on_message(self, &msg, from);
     }
     return 0;
 }
@@ -134,6 +132,10 @@ int receive_any_cb(executor *self, on_message_t on_message) {
     return received > 0 ? 0 : 1;
 }
 
+void hanle_pending(executor *self, on_message_t on_message) {
+    while (receive_any_cb(self, on_message) == 0) {}
+}
+
 int wait_receive_msg_by_type(executor *self, MessageType type, local_id from) {
     Message  msg;
     uint16_t received = 0;
@@ -143,7 +145,7 @@ int wait_receive_msg_by_type(executor *self, MessageType type, local_id from) {
     while (!received) {
         int rc = receive(self, from, &msg);
         if (rc == 0 && msg.s_header.s_type == type) received = 1;
-        // usleep(SLEEP_RECEIVE_USEC);
+        if (rc != 0) usleep(SLEEP_RECEIVE_USEC);
     }
     debug_ipc_print(
         debug_ipc_await_msg_fmt, get_lamport_time(), self->local_id, get_msg_type_text(type), from

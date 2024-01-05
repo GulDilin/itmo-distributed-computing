@@ -154,6 +154,14 @@ int wait_receive_msg_by_type(executor *self, MessageType type, local_id from);
 int receive_any_cb(executor *self, on_message_t on_message);
 
 /**
+ * @brief      Handle pending messages
+ *
+ * @param      self        The executor
+ * @param[in]  on_message  On message callback
+ */
+void hanle_pending(executor *self, on_message_t on_message);
+
+/**
  * @brief      Update time and send a message
  *
  * @param      self  The object

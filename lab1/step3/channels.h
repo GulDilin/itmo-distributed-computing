@@ -21,9 +21,7 @@ typedef struct {
     channel_h write_h;         ///< write handler for pipe
 } channel;
 
-#define SLEEP_RECEIVE_USEC 10  // 10 usec between receive any msg
-
-// int nanosleep(const struct timespec *req, struct timespec * rem);
+#define SLEEP_RECEIVE_USEC 50  // usec between receive any msg
 
 /**
  * @brief      Sleep us

@@ -43,14 +43,14 @@ int is_self_done(executor *self) {
 
 void set_done(executor *self, local_id from) {
     self->proc_done[from] = 1;
-}
-
-void on_done(executor *self, Message *msg, local_id from) {
-    set_done(self, from);
     if (is_all_done(self)) {
         log_events_msg(log_received_all_done_fmt, get_lamport_time(), self->local_id);
         self->all_done = 1;
     }
+}
+
+void on_done(executor *self, Message *msg, local_id from) {
+    set_done(self, from);
 }
 
 void on_message(executor *self, Message *msg, local_id from) {
@@ -87,43 +87,31 @@ void child_done(executor *self) {
 #define STR_BUF_SZ 128
 
 void do_main_work(executor *self, int *loop_idx) {
+    if (self->use_lock && request_cs(self) != 0) return;
     const int MAX_ITER_N = self->local_id * 5;
     char      str[STR_BUF_SZ];
     snprintf(str, STR_BUF_SZ, log_loop_operation_fmt, self->local_id, *loop_idx, MAX_ITER_N);
     print(str);
     *loop_idx += 1;
-    if (*loop_idx >= MAX_ITER_N) {
+    if (self->use_lock) release_cs(self);
+    if (*loop_idx > MAX_ITER_N) {
         set_done(self, self->local_id);
         self->is_self_done = 1;
     }
+    hanle_pending(self, on_message);
 }
-
-#define WORKER_SLEEP 10000
 
 void child_worker(executor *self) {
     child_start(self);
     int main_loop_idx = 1;
-    int done_once = 0;
     debug_worker_print(debug_worker_start_loop_fmt, get_lamport_time(), self->local_id);
+
+    while (!self->is_self_done) do_main_work(self, &main_loop_idx);
+    child_done(self);
     while (!self->all_done) {
-        receive_any_cb(self, on_message);
-        // if (receive_any_cb(self, on_message) != 0) usleep(SLEEP_RECEIVE_USEC);
-        if (!self->is_self_done) {
-            if (self->use_lock && request_cs(self) != 0) continue;
-            do_main_work(self, &main_loop_idx);
-            if (self->use_lock) release_cs(self);
-        }
-        if (self->is_self_done && !done_once) {
-            child_done(self);
-            done_once = 1;
-            if (is_all_done(self)) {
-                log_events_msg(log_received_all_done_fmt, get_lamport_time(), self->local_id);
-                self->all_done = 1;
-            }
-        }
-        usleep(WORKER_SLEEP);
+        if (receive_any_cb(self, on_message) != 0) usleep(SLEEP_RECEIVE_USEC);
     }
-    while (receive_any_cb(self, on_message) == 0) {}
+    hanle_pending(self, on_message);
 }
 
 void parent_worker(executor *self) {

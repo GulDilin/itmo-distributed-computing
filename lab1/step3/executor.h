@@ -26,7 +26,15 @@ typedef struct {
     pid_t       pid;                            ///< Executor process id
     timestamp_t last_recv_at[MAX_PROCESS_ID + 1];
     timestamp_t last_send_at[MAX_PROCESS_ID + 1];
-
 } executor;
+
+/**
+ * @brief      Called on message.
+ *
+ * @param      self  The executor
+ * @param      msg   The message
+ * @param[in]  from  The from process local id
+ */
+void on_message(executor *self, Message *msg, local_id from);
 
 #endif  // __ITMO_DISTRIBUTED_CLASS_EXECUTOR__H
