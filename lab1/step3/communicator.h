@@ -121,16 +121,53 @@ void mark_received(uint8_t *received, local_id from);
 typedef void (*on_message_t)(executor *, Message *, local_id);
 
 /**
+ * Callback type for message handling
+ *
+ * @param       self        The executor process info pointer
+ * @param       msg         The message pointer
+ * @param       local_id    Local process id mesage received from
+ * @param       param       Any additional parameter pointer
+ *
+ * @return     True for success condition, False otherwise
+ */
+typedef int (*on_message_condition_t)(executor *, Message *, local_id, void *);
+
+/**
+ * @brief      Wait for all messages received from children when condition is True for message (from
+ * each process)
+ *
+ * @param      self             The object
+ * @param[in]  condition        The condition
+ * @param      condition_param  The condition parameter (any pointer)
+ * @param[in]  on_message       On message callback (will be called on each message, nullable)
+ *
+ * @return     0 on success, any non-zero value on error
+ */
+int wait_receive_all_child_if(
+    executor *self, on_message_condition_t condition, void *condition_param, on_message_t on_message
+);
+
+/**
  * @brief      Wait for all messages with specified type received from children
  *
  * @param      self        The executor process
  * @param[in]  type        The message type
- * @param[in]  on_message  On message callback (can be NULL for no callback)
+ * @param[in]  on_message  On message callback (will be called on each message, nullable)
  *
  * @return     0 on success, any non-zero value on error
  */
-
 int wait_receive_all_child_msg_by_type(executor *self, MessageType type, on_message_t on_message);
+
+/**
+ * @brief      Wait for all messages received from children after specified timestamp
+ *
+ * @param      self        The executor process
+ * @param[in]  after       Specified timestamp
+ * @param[in]  on_message  On message callback (will be called on each message, nullable)
+ *
+ * @return     0 on success, any non-zero value on error
+ */
+int wait_receive_all_child_msg_after(executor *self, timestamp_t after, on_message_t on_message);
 
 /**
  * @brief      Wait for a message with specified type received from specified children

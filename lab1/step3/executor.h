@@ -12,6 +12,7 @@
 
 #include "channels.h"
 #include "ipc.h"
+#include "lock.h"
 
 typedef struct {
     local_id    local_id;  ///< Local process id (usually index of created process)
@@ -26,6 +27,7 @@ typedef struct {
     pid_t       pid;                            ///< Executor process id
     timestamp_t last_recv_at[MAX_PROCESS_ID + 1];
     timestamp_t last_send_at[MAX_PROCESS_ID + 1];
+    Lock        lock;
 } executor;
 
 /**

@@ -70,7 +70,7 @@ int send_multicast(void *self, const Message *msg) {
         if (executor->local_id == dst) continue;
         rc = send(executor, dst, msg);
         if (rc != 0) {
-            debug_ipc_print("[local_id=%d] send_multicast failed", executor->local_id);
+            debug_ipc_print("[local_id=%d] send_multicast failed\n", executor->local_id);
             break;
         }
     }

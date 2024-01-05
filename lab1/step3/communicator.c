@@ -103,7 +103,9 @@ void mark_received(uint8_t *received, local_id from) {
     received[from] = 1;
 }
 
-int wait_receive_all_child_msg_by_type(executor *self, MessageType type, on_message_t on_message) {
+int wait_receive_all_child_if(
+    executor *self, on_message_condition_t condition, void *condition_param, on_message_t on_message
+) {
     uint8_t  received[MAX_PROCESS_ID + 1] = {0};
     Message  msg;
     local_id from = 0;
@@ -113,10 +115,30 @@ int wait_receive_all_child_msg_by_type(executor *self, MessageType type, on_mess
         if (self->local_id == from) continue;
         if (is_received_msg_from(self, received, from)) continue;
         if (receive(self, from, &msg) != 0) continue;
-        if (msg.s_header.s_type == type) mark_received(received, from);
+        if (condition(self, &msg, from, condition_param)) mark_received(received, from);
         if (on_message != NULL) on_message(self, &msg, from);
     }
     return 0;
+}
+
+int condifion_msg_type(executor *self, Message *msg, local_id from, void *condition_param) {
+    MessageType *type = condition_param;
+    return msg->s_header.s_type == *type;
+}
+
+int wait_receive_all_child_msg_by_type(executor *self, MessageType type, on_message_t on_message) {
+    MessageType s_type = type;
+    return wait_receive_all_child_if(self, condifion_msg_type, &s_type, on_message);
+}
+
+int condifion_msg_after(executor *self, Message *msg, local_id from, void *condition_param) {
+    timestamp_t *after = condition_param;
+    return msg->s_header.s_local_time > *after;
+}
+
+int wait_receive_all_child_msg_after(executor *self, timestamp_t after, on_message_t on_message) {
+    timestamp_t s_after = after;
+    return wait_receive_all_child_if(self, condifion_msg_after, &s_after, on_message);
 }
 
 int receive_any_cb(executor *self, on_message_t on_message) {

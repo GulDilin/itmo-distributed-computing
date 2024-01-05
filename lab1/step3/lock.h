@@ -9,7 +9,6 @@
 
 #include <stdint.h>
 
-#include "executor.h"
 #include "ipc.h"
 
 typedef enum {
@@ -37,7 +36,6 @@ typedef struct {
 typedef struct {
     LockState   state;
     LockQueue   queue;
-    timestamp_t replied_at[MAX_PROCESS_ID + 1];
     LockRequest active_request;
 } Lock;
 
@@ -48,7 +46,7 @@ typedef struct {
  * @param      msg   The message
  * @param[in]  from  The from process id
  */
-void on_request_cs(executor* self, Message* msg, local_id from);
+void on_request_cs(void* self, Message* msg, local_id from);
 
 /**
  * @brief      Called on reply lock.
@@ -57,7 +55,7 @@ void on_request_cs(executor* self, Message* msg, local_id from);
  * @param      msg   The message
  * @param[in]  from  The from process id
  */
-void on_reply_cs(executor* self, Message* msg, local_id from);
+void on_reply_cs(void* self, Message* msg, local_id from);
 
 /**
  * @brief      Called on release lock.
@@ -66,13 +64,13 @@ void on_reply_cs(executor* self, Message* msg, local_id from);
  * @param      msg   The message
  * @param[in]  from  The from process id
  */
-void on_release_cs(executor* self, Message* msg, local_id from);
+void on_release_cs(void* self, Message* msg, local_id from);
 
 /**
  * @brief      Initializes the lock.
  *
  * @param      self  The executor
  */
-void init_lock(executor* self);
+void init_lock(void* self);
 
 #endif  // __ITMO_DISTRIBUTED_CLASS_LOCK__H
