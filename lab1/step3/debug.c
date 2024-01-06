@@ -1,6 +1,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#include "logger.h"
+
 static int is_debug_enabled = 0;
 static int is_debug_ipc_enabled = 0;
 static int is_debug_time_enabled = 0;

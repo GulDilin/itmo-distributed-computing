@@ -132,10 +132,15 @@ static const char* const debug_time_next_tick_fmt = "%2d: next_tick [other_time=
 
 static const char* const debug_lock_acquire_fmt = "%2d: [local_id=%2d] lock_acquire\n";
 static const char* const debug_lock_wait_fmt = "%2d: [local_id=%2d] lock_wait\n";
+static const char* const debug_lock_await_reply_fmt = "%2d: [local_id=%2d] lock await reply\n";
 static const char* const debug_lock_defered_reply_fmt
     = "%2d: [local_id=%2d] defer reply for [id=%d]\n";
 static const char* const debug_lock_released_fmt = "%2d: [local_id=%2d] lock_released\n";
-static const char* const debug_lock_queue_fmt = "[local_id=%d] [active_t=%2d] queue (%2d): ";
+static const char* const debug_lock_queue_fmt = "%2d: [local_id=%d] queue [wait_t=%2d] (%2d): ";
+static const char* const debug_lock_queue_push_fmt
+    = "%2d: [local_id=%d] push req [%d, %d] idx %d\n";
+static const char* const debug_lock_queue_pop_fmt
+    = "%2d: [local_id=%d] pop req [%d, %d] [from=%2d] idx %d\n";
 static const char* const debug_lock_queue_part_fmt = "[%d, %d]";
 static const char* const debug_lock_reply_at_fmt = "[local_id=%d] [active_t=%2d] reply_at: ";
 

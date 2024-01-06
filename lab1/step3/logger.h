@@ -59,6 +59,17 @@ void close_events_log_f();
 int log_file_msg(int handler, const char *fmt, va_list args);
 
 /**
+ * @brief      Logs a message both to a file and stdout.
+ *
+ * @param[in]  handler    The file handler
+ * @param[in]  fmt        The message format
+ * @param[in]  <unnamed>  args
+ *
+ * @return     0 on success, any non-zero value on error
+ */
+int log_msg(int handler, const char *fmt, va_list args);
+
+/**
  * @brief      Logs a message to the pipes log file.
  *
  * @param[in]  fmt        The format
@@ -77,5 +88,7 @@ int log_pipes_msg(const char *fmt, ...);
  * @return     0 on success, any non-zero value on error
  */
 int log_events_msg(const char *fmt, ...);
+
+int get_events_log_fh();
 
 #endif  // __ITMO_DISTRIBUTED_CLASS_LOGGER__H

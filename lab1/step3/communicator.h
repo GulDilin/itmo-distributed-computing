@@ -138,13 +138,16 @@ typedef int (*on_message_condition_t)(executor *, Message *, local_id, void *);
  *
  * @param      self             The object
  * @param[in]  condition        The condition
+ * @param      received  Pointer to recieved array (nullable). Can be useful to mark recieved before
+ * recieve any message
  * @param      condition_param  The condition parameter (any pointer)
  * @param[in]  on_message       On message callback (will be called on each message, nullable)
  *
  * @return     0 on success, any non-zero value on error
  */
 int wait_receive_all_child_if(
-    executor *self, on_message_condition_t condition, void *condition_param, on_message_t on_message
+    executor *self, on_message_condition_t condition, void *condition_param, uint8_t *received,
+    on_message_t on_message
 );
 
 /**
