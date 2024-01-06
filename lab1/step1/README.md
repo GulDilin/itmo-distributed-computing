@@ -19,6 +19,31 @@ Artifacts:
 - output executable in `./build/pa1.o`
 - archive with sources in `./build/pa1.tar.gz`
 
+### Usage
+
+```shell
+Usage: pa1.o [OPTION...]
+Distributed computing lab1 step1 -- a distributed program communicates with
+pipes
+
+  -p, --process=NUMBER OF PROCESSES
+                             Amount of processes (2-15)
+  -?, --help                 Give this help list
+      --usage                Give a short usage message
+  -V, --version              Print program version
+
+Mandatory or optional arguments to long options are also mandatory or optional
+for any corresponding short options.
+
+Report bugs to zhenyagurin@gmail.com.
+```
+
+**Example:** Run with 3 child processes and start balance 30$, 40$ and 50$
+
+```shell
+./pa3.o -p 3 30 40 50
+```
+
 ## Реализация межпроцессного взаимодействия посредством сообщений
 
 ### Введение
